@@ -9,8 +9,17 @@
 *.class
 
 # generated files
-bin/
-gen/
+*/bin/
+*/gen/
+
+#eclipse stuff
+.project
+.classpath
+proguard-project.txt
+project.properties
+default.properties
+.settings
+
 
 # Local configuration file (sdk path, etc)
 local.properties
