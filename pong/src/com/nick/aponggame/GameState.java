@@ -4,6 +4,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 
 public class GameState {
 
@@ -61,6 +62,12 @@ public class GameState {
 			_topBatX -= _batSpeed; _bottomBatX += _batSpeed;
 		}
 	
+		return true;
+	}
+	
+	public boolean touched(MotionEvent e){
+		_topBatX=(int)e.getX();
+		_bottomBatX=(int)e.getX();
 		return true;
 	}
 

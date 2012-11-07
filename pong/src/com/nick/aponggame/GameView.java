@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.Handler;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
@@ -26,6 +27,11 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback{
     public boolean onKeyDown(int keyCode, KeyEvent msg) {
         return _thread.getGameState().keyPressed(keyCode, msg);
     }
+	
+	@Override
+	public boolean onTouchEvent(MotionEvent e){
+		return _thread.getGameState().touched(e);
+	}
 
     //Implemented as part of the SurfaceHolder.Callback interface
 	//@Override
