@@ -7,7 +7,7 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.view.SurfaceHolder;
 
-public class StateHandler
+public class StateHandler extends Thread
 {
 	private int maxWidth;
 	private int maxHeight;

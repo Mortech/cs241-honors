@@ -12,7 +12,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.ViewGroup;
 
-public class GameMode2PActivity extends Activity implements GameMode
+public class GameMode2PActivity extends Activity implements GameMode, SurfaceHolder.Callback
 {
 	private SurfaceView view;
 	private SurfaceHolder holder;
@@ -35,6 +35,8 @@ public class GameMode2PActivity extends Activity implements GameMode
         view=new SurfaceView(this);
 		paddle=new Paddle(view.getWidth()/2 - (75/*length*/ / 2), 400, 75, 10);//temporary values, I havn't mathed it out yet
 	   	holder=view.getHolder();
+	   	holder.addCallback(this);
+        view.setFocusable(true);
 	   	scoreP1=0;
 	   	scoreP2=0;
 	   	winningScore=10; //MAKE CHOOSABLE LATER
@@ -57,7 +59,7 @@ public class GameMode2PActivity extends Activity implements GameMode
 	   	System.out.println("setting Content View");
 	   	setContentView(view);
 	   	System.out.println("starting");
-	   	handler.run();
+	   	//handler.run();
 	   	System.out.println("returning");
 	   	return;
     }
@@ -85,4 +87,24 @@ public class GameMode2PActivity extends Activity implements GameMode
 	{
 		return scoreP2;
 	}
+	
+	//Implemented as part of the SurfaceHolder.Callback interface
+		//@Override
+		public void surfaceChanged(SurfaceHolder holder, int format, int width,
+				int height) {
+			//Mandatory, just swallowing it for this example
+
+		}
+
+	    //Implemented as part of the SurfaceHolder.Callback interface
+		//@Override
+		public void surfaceCreated(SurfaceHolder holder) {
+			handler.start();
+		}
+
+	    //Implemented as part of the SurfaceHolder.Callback interface
+		//@Override
+		public void surfaceDestroyed(SurfaceHolder holder) {
+	        handler.stop();
+		}
 }
