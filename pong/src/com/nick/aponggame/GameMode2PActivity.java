@@ -30,18 +30,17 @@ public class GameMode2PActivity extends Activity
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        
+        System.out.println("Made it past super.onCreate");
         
         balls=new ArrayList<Ball>();
+        view=new SurfaceView(this);
 		paddle=new Paddle(view.getWidth()/2 - (75/*length*/ / 2), 400, 75, 10);//temporary values, I havn't mathed it out yet
 		painter=new Paint();
-	   	super.onCreate(savedInstanceState);
-	   	view=new SurfaceView(this);
 	   	holder=view.getHolder();
 	   	scoreP1=0;
 	   	scoreP2=0;
 	   	winningScore=10; //MAKE CHOOSABLE LATER
-	   	
+	   	System.out.println("instantiated variables");
 	   		   	
 	   	view.setZOrderOnTop(true);
 	   	view.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
@@ -57,9 +56,11 @@ public class GameMode2PActivity extends Activity
 	   	
 	   	handler=new StateHandler(view.getWidth(), view.getHeight(), balls, paddle);
 	   	
-
+	   	System.out.println("setting Content View");
 	   	setContentView(view);
+	   	System.out.println("starting");
 	   	start();
+	   	System.out.println("returning");
 	   	return;
     }
     
