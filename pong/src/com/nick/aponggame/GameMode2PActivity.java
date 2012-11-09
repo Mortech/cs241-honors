@@ -16,7 +16,6 @@ public class GameMode2PActivity extends Activity implements GameMode
 {
 	private SurfaceView view;
 	private SurfaceHolder holder;
-	private Paint painter;
 	private int scoreP1;
 	private int scoreP2;
 	private int winningScore;
@@ -35,7 +34,6 @@ public class GameMode2PActivity extends Activity implements GameMode
         balls=new ArrayList<Ball>();
         view=new SurfaceView(this);
 		paddle=new Paddle(view.getWidth()/2 - (75/*length*/ / 2), 400, 75, 10);//temporary values, I havn't mathed it out yet
-		painter=new Paint();
 	   	holder=view.getHolder();
 	   	scoreP1=0;
 	   	scoreP2=0;
@@ -54,12 +52,12 @@ public class GameMode2PActivity extends Activity implements GameMode
 	   	if(isPlayer1)
 	   		balls.add(new Ball(view.getWidth()/2, view.getHeight()/2, 3, 3, 10));
 	   	
-	   	handler=new StateHandler(view.getWidth(), view.getHeight(), balls, paddle, this);
+	   	handler=new StateHandler(view.getWidth(), view.getHeight(), balls, paddle, this, holder);
 	   	
 	   	System.out.println("setting Content View");
 	   	setContentView(view);
 	   	System.out.println("starting");
-	   	hander.run();
+	   	handler.run();
 	   	System.out.println("returning");
 	   	return;
     }

@@ -5,23 +5,27 @@ import java.util.ArrayList;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.view.SurfaceHolder;
 
 public class StateHandler
 {
 	private int maxWidth;
 	private int maxHeight;
+	private int winningScore=10;
 	ArrayList<Ball> ballList;
 	private Paddle paddle;
 	GameMode owner;
+	SurfaceHolder holder;
 	
 	
-	public StateHandler(int width, int height, ArrayList<Ball> balls, Paddle pad, GameMode caller)
+	public StateHandler(int width, int height, ArrayList<Ball> balls, Paddle pad, GameMode caller, SurfaceHolder hold)
 	{
 		maxWidth=width;
 		maxHeight=height;
 		ballList=balls;
 		paddle=pad;
 		owner=caller;
+		holder=hold;
 	}
 	
 	public void update()// later change to return int reflecting who scored, if anyone
@@ -76,13 +80,13 @@ public class StateHandler
 
 	public void run()
 	{
-		while(owner.getP1Score()<winningScore && getP2Score()<winningScore)
+		while(owner.getP1Score()<winningScore && owner.getP2Score()<winningScore)
 		{
 			Canvas canvas = holder.lockCanvas();
 			
 			//HANDLE STUFF SENT BY NETWORK	
-			handler.update();
- 	 		handler.draw(canvas, painter);
+			update();
+ 	 		draw(canvas, new Paint());
  	 		holder.unlockCanvasAndPost(canvas);
  	 	}	
 		//HANDLE WINNER HERE	
