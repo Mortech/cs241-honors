@@ -12,14 +12,16 @@ public class StateHandler
 	private int maxHeight;
 	ArrayList<Ball> ballList;
 	private Paddle paddle;
+	GameMode owner;
 	
 	
-	public StateHandler(int width, int height, ArrayList<Ball> balls, Paddle pad)
+	public StateHandler(int width, int height, ArrayList<Ball> balls, Paddle pad, GameMode caller)
 	{
 		maxWidth=width;
 		maxHeight=height;
 		ballList=balls;
 		paddle=pad;
+		owner=caller;
 	}
 	
 	public void update()// later change to return int reflecting who scored, if anyone
@@ -70,5 +72,20 @@ public class StateHandler
 									paddle.getY() + paddle.getHeight()), 
 									paint); //bottom bat
 
+	}
+
+	public void run()
+	{
+		while(owner.getP1Score()<winningScore && getP2Score()<winningScore)
+		{
+			Canvas canvas = holder.lockCanvas();
+			
+			//HANDLE STUFF SENT BY NETWORK	
+			handler.update();
+ 	 		handler.draw(canvas, painter);
+ 	 		holder.unlockCanvasAndPost(canvas);
+ 	 	}	
+		//HANDLE WINNER HERE	
+		return;
 	}
 }
