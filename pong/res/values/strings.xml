@@ -4,5 +4,8 @@
     <string name="hello_world">Hello world!</string>
     <string name="menu_settings">Settings</string>
     <string name="title_activity_main">MainActivity</string>
+    <string name="buttonStart2p">Start 2-Player Game!</string>
+    <string name="title_activity_two_player_mode">TwoPlayerModeActivity</string>
+    <string name="title_activity_game_mode2_p">GameMode2PActivity</string>
 
 </resources>
