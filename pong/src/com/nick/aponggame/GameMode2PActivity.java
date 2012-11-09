@@ -59,7 +59,7 @@ public class GameMode2PActivity extends Activity implements GameMode
 	   	System.out.println("setting Content View");
 	   	setContentView(view);
 	   	System.out.println("starting");
-	   	start();
+	   	hander.run();
 	   	System.out.println("returning");
 	   	return;
     }
