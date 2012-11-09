@@ -12,7 +12,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.ViewGroup;
 
-public class GameMode2PActivity extends Activity
+public class GameMode2PActivity extends Activity implements GameMode
 {
 	private SurfaceView view;
 	private SurfaceHolder holder;
@@ -54,7 +54,7 @@ public class GameMode2PActivity extends Activity
 	   	if(isPlayer1)
 	   		balls.add(new Ball(view.getWidth()/2, view.getHeight()/2, 3, 3, 10));
 	   	
-	   	handler=new StateHandler(view.getWidth(), view.getHeight(), balls, paddle);
+	   	handler=new StateHandler(view.getWidth(), view.getHeight(), balls, paddle, this);
 	   	
 	   	System.out.println("setting Content View");
 	   	setContentView(view);
@@ -78,21 +78,13 @@ public class GameMode2PActivity extends Activity
 		return true;
 	}
     
-    private void start()
+    public int getP1Score()
 	{
-		while(scoreP1<winningScore && scoreP2<winningScore)
-		{
-			Canvas canvas = holder.lockCanvas();
-						
-			//HANDLE STUFF SENT BY NETWORK
-			
-			handler.update();
-			handler.draw(canvas, painter);
-			holder.unlockCanvasAndPost(canvas);
-		}
-		//HANDLE WINNER HERE
-		
-		
-		return;
+		return scoreP1;
+	}
+
+	public int getP2Score()
+	{
+		return scoreP2;
 	}
 }
