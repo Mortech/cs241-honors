@@ -2,10 +2,13 @@ package com.nick.aponggame;
 
 import java.util.ArrayList;
 
-import android.os.Bundle;
 import android.app.Activity;
-import android.graphics.Canvas;
-import android.graphics.Paint;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.IntentFilter;
+import android.net.wifi.p2p.WifiP2pManager;
+import android.net.wifi.p2p.WifiP2pManager.Channel;
+import android.os.Bundle;
 import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -24,12 +27,15 @@ public class GameMode2PActivity extends Activity implements GameMode, SurfaceHol
 	private Paddle paddle;
 	boolean isPlayer1;
 	
+	WifiP2pManager manager;
+	Channel channel;
+	BroadcastReceiver receiver;
+	IntentFilter intent;
 
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        System.out.println("Made it past super.onCreate");
         
         balls=new ArrayList<Ball>();
         view=new SurfaceView(this);
@@ -40,7 +46,6 @@ public class GameMode2PActivity extends Activity implements GameMode, SurfaceHol
 	   	scoreP1=0;
 	   	scoreP2=0;
 	   	winningScore=10; //MAKE CHOOSABLE LATER
-	   	System.out.println("instantiated variables");
 	   		   	
 	   	view.setZOrderOnTop(true);
 	   	view.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
@@ -49,6 +54,27 @@ public class GameMode2PActivity extends Activity implements GameMode, SurfaceHol
 	   	/*
 	   	 * HANDLE SETTING UP NETWORK HERE
 	   	 */
+	   	manager=(WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
+	   	channel=manager.initialize(this,  getMainLooper(),  null);
+	   	receiver=new WifiReceiver(manager, channel, this);
+	   	
+	   	intent=new IntentFilter();
+	   	intent.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
+	   	intent.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
+	   	intent.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
+	   	intent.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+	   	
+	   	manager.discoverPeers(channel, new WifiP2pManager.ActionListener(){
+	   		//@Override
+	   		public void onSuccess(){
+	   			System.out.println("SUCCESSful discovery of peers");
+	   		}
+	   		//@Override
+	   		public void onFailure(int reason){
+	   			System.out.println("Discovery failed. ); reason="+reason);
+	   		}
+	   	});
+	   	
 	   	isPlayer1=true;//WILL BE DYNAMIC ONCE WE HAVE NETWORK CODE
 	   	
 	   	if(isPlayer1)
@@ -56,12 +82,20 @@ public class GameMode2PActivity extends Activity implements GameMode, SurfaceHol
 	   	
 	   	handler=new StateHandler(view.getWidth(), view.getHeight(), balls, paddle, this, holder);
 	   	
-	   	System.out.println("setting Content View");
 	   	setContentView(view);
-	   	System.out.println("starting");
-	   	//handler.run();
-	   	System.out.println("returning");
 	   	return;
+    }
+    
+    @Override
+    protected void onResume(){
+    	super.onResume();
+    	registerReceiver(receiver, intent);
+    }
+    
+    @Override
+    protected void onPause(){
+    	super.onPause();
+    	unregisterReceiver(receiver);
     }
     
     @Override
