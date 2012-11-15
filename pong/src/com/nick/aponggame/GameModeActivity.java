@@ -42,9 +42,7 @@ public class GameModeActivity extends Activity
         
         view.setFocusable(true);
 	   	view.setZOrderOnTop(true);
-	   	view.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-	   												ViewGroup.LayoutParams.MATCH_PARENT));
-	   	
+	   
 	   	
 	   	setContentView(view);
 	   	return;

@@ -19,8 +19,6 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 															Runnable, 
 															NetworkStateHandler
 {
-	private int maxWidth;
-	private int maxHeight;
 	private SurfaceHolder holder;
 	private int scoreP1;
 	private int scoreP2;
@@ -36,16 +34,14 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 	BroadcastReceiver receiver;
 	IntentFilter intent;
 	
-	
+//NOTE:THIS HORIZONTAL ORIENTATION RESULTS IN UNTESTABLE BEHAVIOR ATM
 	public StateHandler2P(Activity context)
-	{
+	{//NOTE: getHeight() and getWidth() will return 0 at this point
 		super(context);
 		
-		owner=context;		
-		maxWidth=getWidth();
-		maxHeight=getHeight();
+		owner=context;
 		balls=new ArrayList<Ball>();
-		paddle=new Paddle(maxWidth/2 - (75/*length*/ / 2), 400, 75, 10);//temporary values, I havn't mathed it out yet;
+		paddle=new Paddle(122, 680, 75, 10); //professional version needs a way to know height and width to set it at proper location, not a big deal
 		holder=getHolder();
 		holder.addCallback(this);
 		scoreP1=0;
@@ -54,10 +50,12 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 		gameThread=new Thread(this);
 		
 		
+		
+		
 		isPlayer1=true;//WILL BE DYNAMIC ONCE WE HAVE NETWORK CODE
 	   	if(isPlayer1)
-	   		balls.add(new Ball(maxWidth/2, maxHeight/2, 3, 3, 10));
-	   	
+	   		balls.add(new Ball(155, 10, 3, 3, 10));//always starts on p1 screen [for now?]
+	   		//professional version needs a way to know height and width to set it at proper starting location, not a big deal
 	   	
 	   	//HANDLE SETTING UP NETWORK HERE
 	   	manager=(WifiP2pManager) owner.getSystemService(Context.WIFI_P2P_SERVICE);
@@ -82,6 +80,7 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 	   	});
 	}
 	
+	//used by run
 	public void update()// later change to return int reflecting who scored, if anyone
 	{
 		for(Ball b : balls)
@@ -89,25 +88,35 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 			b.move();
 		
 			//DEATH!
-			if(b.getY() > maxHeight || b.getY() < 0)
-			{
-				b.setX(100);//Collisions with the sides
+			if(b.getY() > getHeight())
+			{//Collisions with the top/bot walls
+				b.setX(getWidth()/2-b.getSize()/2); 
+				b.setY(10);
+				b.setXV(3);//in professional version, would make random angle and set velocity appropriately
+				b.setYV(3);
+				
+				scoreP2++;
 			}
-		
-			if(b.getX() > maxWidth || b.getX() < 0)
+			if(b.getY() < 0)
 			{
-				b.reverseX(); 	//Collisions with the bats 
+				//CHANGE LATER TO NETWORK BALL TO OTHER PHONE
+				b.setX(100); 
+				b.setY(100);
 			}
-		
-			if(		b.getX() > paddle.getX() &&
-					b.getX() < paddle.getX()+paddle.getLength() && 
-					b.getY() > paddle.getY())
-			{
+			if(b.getX()+b.getSize() > getWidth() || b.getX() < 0)
+			{//Collisions with left/right walls
+				b.reverseX();  
+			}
+			if(	b.getX() > paddle.getX() &&
+				b.getX() < paddle.getX()+paddle.getLength() &&
+				b.getY()+b.getSize() >= paddle.getY()) 
+			{//collision with paddles
 				b.reverseY();
 			}
 		}
 	}
 	
+	//used by run()
 	public void draw(Canvas canvas, Paint paint)
 	{
 		//Clear the screen
@@ -132,6 +141,12 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 
 	}
 
+	/* thread part of view. continuouslt updates ball position, and draws 
+	 * ball and paddle
+	 * 
+	 * @param - none
+	 * @return - none
+	 */
 	public void run()
 	{
 		while(scoreP1<winningScore && scoreP2<winningScore)
@@ -147,7 +162,11 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 		return;
 	}
 	
-    @Override
+    /* handles touch event. moves paddle horizontally to where screen was touched
+     * 
+     * @param - MotionEvent sent by phone
+     * @return - true, indicating always successful. Probably bad to do that
+     */
 	public boolean onTouchEvent(MotionEvent e)
 	{
 		paddle.setX((int)(e.getX()));
@@ -174,17 +193,18 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 	//@Override
 	public void surfaceChanged(SurfaceHolder holder, int format, int width,
 			int height) {
-		//Mandatory, just swallowing it for this example
+		//Mandatory, just swallowing it for this
 
 	}
 
-    //Implemented as part of the SurfaceHolder.Callback interface
+    //Implemented as part of the SurfaceHolder.Callback interface. starts thread
 	//@Override
 	public void surfaceCreated(SurfaceHolder holder) {
 		gameThread.start();
 	}
 
-    //Implemented as part of the SurfaceHolder.Callback interface
+    //Implemented as part of the SurfaceHolder.Callback interface. ends thread 
+	//abrubtly if needed
 	//@Override
 	public void surfaceDestroyed(SurfaceHolder holder) {
         gameThread.stop();

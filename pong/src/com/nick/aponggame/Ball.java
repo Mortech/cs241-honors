@@ -66,4 +66,14 @@ public class Ball
 		yPos=yPosDef;
 		return;
 	}
+	public void setXV(int x)
+	{
+		xVel=x;
+		return;
+	}
+	public void setYV(int y)
+	{
+		yVel=y;
+		return;
+	}
 }
