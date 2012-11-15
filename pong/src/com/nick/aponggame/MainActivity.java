@@ -9,9 +9,7 @@ import android.view.View;
 public class MainActivity extends Activity
 {
 	//constants
-	public static final String EXTRA_MESSAGE = 
-			"com.CrankMachine.mytestapp.MESSAGE";	//to be used for 
-													//inter-activity data exchange
+	public static final String GAME_MODE = "com.example.myfirstapp.GAME_MODE";//key for game mode name sent by intent
 	
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -29,7 +27,8 @@ public class MainActivity extends Activity
     
     public void button0Clicked(View current)
     {
-    	Intent intent=new Intent(this, GameMode2PActivity.class);
+    	Intent intent=new Intent(this, GameModeActivity.class);
+    	intent.putExtra(GAME_MODE, "2p");//type of game this button represented
     	startActivity(intent);
     }
     

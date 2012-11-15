@@ -1,5 +1,6 @@
 package com.nick.aponggame;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -9,14 +10,13 @@ import android.net.wifi.p2p.WifiP2pManager.Channel;
 public class WifiReceiver extends BroadcastReceiver{
 	private WifiP2pManager manager;
     private Channel channel;
-    private GameMode2PActivity activity;
+    private Activity activity;
 
-    public WifiReceiver(WifiP2pManager manager, Channel channel,
-            GameMode2PActivity activity) {
+    public WifiReceiver(WifiP2pManager manager, Channel channel, Activity activity)
+    {
         super();
         this.manager = manager;
         this.channel = channel;
-        this.activity = activity;
     }
 
     @Override

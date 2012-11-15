@@ -7,5 +7,6 @@
     <string name="buttonStart2p">Start 2-Player Game!</string>
     <string name="title_activity_two_player_mode">TwoPlayerModeActivity</string>
     <string name="title_activity_game_mode2_p">GameMode2PActivity</string>
+    <string name="title_activity_game_mode">GameModeActivity</string>
 
 </resources>
