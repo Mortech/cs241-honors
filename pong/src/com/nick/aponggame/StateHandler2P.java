@@ -23,7 +23,7 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 	private int scoreP1;
 	private int scoreP2;
 	private int winningScore;
-	private ArrayList<Ball> balls;
+	private ArrayList<Ball> balls; //TODO: balls need to be protected somehow...
 	private Paddle paddle;
 	private boolean isPlayer1;
 	private Thread gameThread;
@@ -161,6 +161,25 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 		//HANDLE WINNER HERE	
 		return;
 	}
+	
+	/* This function is called from the networking thread, when a ball is returning
+	 * 
+	 * @param - x position, x velocity, y velocity
+	 * @return - none
+	 */
+	public void returningBall(int x, int xvel, int yvel){
+		for(Ball b : balls){
+			if(b.getY()<0){
+				b.setX(x);
+				b.setY(0);
+				b.setXV(xvel);
+				b.setYV(yvel);
+				break;
+			}
+		}
+	}
+	
+	//TODO: send ball data over network
 	
     /* handles touch event. moves paddle horizontally to where screen was touched
      * 
