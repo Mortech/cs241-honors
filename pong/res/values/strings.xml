@@ -8,5 +8,20 @@
     <string name="title_activity_two_player_mode">TwoPlayerModeActivity</string>
     <string name="title_activity_game_mode2_p">GameMode2PActivity</string>
     <string name="title_activity_game_mode">GameModeActivity</string>
+    <string name="select_device">select a device</string>
+    <string name="scanning">scanning for devices...</string>
+    <string name="none_found">no devices found</string>
+    <string name="none_paired">no devices paired</string>
+    <string name="bt_not_enabled_leaving">Bluetooth was not enabled!</string>
+    <string name="title_connected_to">connected: </string>
+    <string name="title_not_connected">not connected</string>
+    <string name="title_connecting">connecting...</string>
+    <string name="not_connected">Not connected to any devices</string>
+    <string name="title_paired_devices">Paired Devices</string>
+    <string name="title_other_devices">Other available devices</string>
+    <string name="button_scan">Scan for devices</string>
+    <string name="connect">Connect a device</string>
+    <string name="discoverable">Make discoverable</string>
+    <string name="send">Send</string>
 
 </resources>
