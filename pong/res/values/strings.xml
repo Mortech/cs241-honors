@@ -24,5 +24,6 @@
     <string name="discoverable">Make discoverable</string>
     <string name="send">Send</string>
     <string name="buttonJoin2p">Join 2-Player Game!</string>
+    <string name="quit">Quit Game</string>
 
 </resources>

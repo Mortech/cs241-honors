@@ -33,7 +33,7 @@ import android.widget.Toast;
 
 public class GameModeActivity extends Activity
 {
-	private SurfaceView view;
+	private StateHandler2P view;
 	private String mode;
 	boolean usesNetwork;
 	// Debugging
@@ -54,12 +54,6 @@ public class GameModeActivity extends Activity
     // Intent request codes
     private static final int REQUEST_CONNECT_DEVICE = 1;
     private static final int REQUEST_ENABLE_BT = 2;
-
-    // Layout Views
-    private TextView mTitle;
-    private ListView mConversationView;
-    private EditText mOutEditText;
-    private Button mSendButton;
 
     // Name of the connected device
     private String mConnectedDeviceName = null;
@@ -157,6 +151,7 @@ public class GameModeActivity extends Activity
     
     private void setupGame() {
         Log.d(TAG, "setupGame()");
+        mChatService = new Server(this, mHandler);
         if(mode.equals("2p0")){
         	ensureDiscoverable();
         	//Wait for another device to connect!
@@ -166,14 +161,6 @@ public class GameModeActivity extends Activity
             startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE);
             //Wait for successful connect!
         }
-        view=new StateHandler2P(this);
-
-
-        view.setFocusable(true);
-	   	view.setZOrderOnTop(true);
-	   
-	   	
-	   	setContentView(view);
 	   	/*
         // Initialize the array adapter for the conversation thread
         mConversationArrayAdapter = new ArrayAdapter<String>(this, R.layout.message);
@@ -203,6 +190,17 @@ public class GameModeActivity extends Activity
         */
     }
     
+    private void startGame(){
+    	view=new StateHandler2P(this, mode.equals("2p0"), mChatService);
+
+
+        view.setFocusable(true);
+	   	view.setZOrderOnTop(true);
+	   
+	   	
+	   	setContentView(view);
+    }
+    
     private void ensureDiscoverable() {
         if(D) Log.d(TAG, "ensure discoverable");
         if (mBluetoothAdapter.getScanMode() !=
@@ -213,43 +211,6 @@ public class GameModeActivity extends Activity
         }
     }
 
-    /**
-     * Sends a message.
-     * @param message  A string of text to send.
-     */
-    private void sendMessage(String message) {
-        // Check that we're actually connected before trying anything
-        if (mChatService.getState() != Server.STATE_CONNECTED) {
-            Toast.makeText(this, R.string.not_connected, Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // Check that there's actually something to send
-        if (message.length() > 0) {
-            // Get the message bytes and tell the BluetoothChatService to write
-            byte[] send = message.getBytes();
-            mChatService.write(send);
-
-            // Reset out string buffer to zero and clear the edit text field
-            mOutStringBuffer.setLength(0);
-            mOutEditText.setText(mOutStringBuffer);
-        }
-    }
-
-    // The action listener for the EditText widget, to listen for the return key
-    private TextView.OnEditorActionListener mWriteListener =
-        new TextView.OnEditorActionListener() {
-        public boolean onEditorAction(TextView view, int actionId, KeyEvent event) {
-            // If the action is a key-up event on the return key, send the message
-            if (actionId == EditorInfo.IME_NULL && event.getAction() == KeyEvent.ACTION_UP) {
-                String message = view.getText().toString();
-                sendMessage(message);
-            }
-            if(D) Log.i(TAG, "END onEditorAction");
-            return true;
-        }
-    };
-
     // The Handler that gets information back from the BluetoothChatService
     private final Handler mHandler = new Handler() {
         @Override
@@ -259,30 +220,31 @@ public class GameModeActivity extends Activity
                 if(D) Log.i(TAG, "MESSAGE_STATE_CHANGE: " + msg.arg1);
                 switch (msg.arg1) {
                 case Server.STATE_CONNECTED:
-                    mTitle.setText(R.string.title_connected_to);
-                    mTitle.append(mConnectedDeviceName);
+                    startGame();
                     mConversationArrayAdapter.clear();
                     break;
                 case Server.STATE_CONNECTING:
-                    mTitle.setText(R.string.title_connecting);
                     break;
                 case Server.STATE_LISTEN:
                 case Server.STATE_NONE:
-                    mTitle.setText(R.string.title_not_connected);
                     break;
                 }
                 break;
             case MESSAGE_WRITE:
-                byte[] writeBuf = (byte[]) msg.obj;
+                //byte[] writeBuf = (byte[]) msg.obj;
                 // construct a string from the buffer
-                String writeMessage = new String(writeBuf);
-                mConversationArrayAdapter.add("Me:  " + writeMessage);
+                //String writeMessage = new String(writeBuf);
+                //mConversationArrayAdapter.add("Me:  " + writeMessage);
                 break;
             case MESSAGE_READ:
                 byte[] readBuf = (byte[]) msg.obj;
                 // construct a string from the valid bytes in the buffer
                 String readMessage = new String(readBuf, 0, msg.arg1);
-                mConversationArrayAdapter.add(mConnectedDeviceName+":  " + readMessage);
+                String[] split=readMessage.split(" ");
+                int x=Integer.parseInt(split[0]);
+                int xv=Integer.parseInt(split[1]);
+                int yv=Integer.parseInt(split[2]);
+                view.returningBall(x, xv, yv);
                 break;
             case MESSAGE_DEVICE_NAME:
                 // save the connected device's name
@@ -337,6 +299,9 @@ public class GameModeActivity extends Activity
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+        case R.id.quit:
+        	finish();
+        	return true;
         case R.id.scan:
             // Launch the DeviceListActivity to see devices and do scan
             Intent serverIntent = new Intent(this, DeviceList.class);

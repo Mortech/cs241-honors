@@ -3,6 +3,7 @@ package com.nick.aponggame;
 import java.util.ArrayList;
 
 import android.app.Activity;
+import android.bluetooth.BluetoothAdapter;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
@@ -23,10 +24,11 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 	private volatile boolean running=true;
 	private Thread gameThread;
 	private Activity owner;
+    private Server mChatService;
 	
 	
 //NOTE:THIS HORIZONTAL ORIENTATION RESULTS IN UNTESTABLE BEHAVIOR ATM
-	public StateHandler2P(Activity context)
+	public StateHandler2P(Activity context, boolean play, Server serve)
 	{//NOTE: getHeight() and getWidth() will return 0 at this point
 		super(context);
 		
@@ -39,11 +41,11 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 		scoreP2=0;
 		winningScore=10; //MAKE CHOOSABLE LATER
 		gameThread=new Thread(this);
+		mChatService=serve;
 		
 		
 		
-		
-		isPlayer1=true;//WILL BE DYNAMIC ONCE WE HAVE NETWORK CODE
+		isPlayer1=play;//WILL BE DYNAMIC ONCE WE HAVE NETWORK CODE
 	   	if(isPlayer1)
 	   		balls.add(new Ball(155, 10, 3, 3, 10));//always starts on p1 screen [for now?]
 	   		//professional version needs a way to know height and width to set it at proper starting location, not a big deal
@@ -72,9 +74,15 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 			}
 			if(b.getY() < 0)
 			{
-				//CHANGE LATER TO NETWORK BALL TO OTHER PHONE
-				b.setX(100); 
-				b.setY(100);
+				String message=b.getX()+" "+b.getXV()+" "+b.getYV();
+				// Get the message bytes and tell the BluetoothChatService to write
+	            byte[] send = message.getBytes();
+	            mChatService.write(send);
+	            
+				b.setXV(0);
+				b.setYV(0);
+				b.setX(-100); 
+				b.setY(-100);
 			}
 			if(b.getX()+b.getSize() > getWidth() || b.getX() < 0)
 			{//Collisions with left/right walls
@@ -141,11 +149,11 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 	 * @return - none
 	 */
 	public void returningBall(int x, int xvel, int yvel){
-		for(Ball b : balls){
+		for(Ball b : balls){ //Only works for one ball!
 			if(b.getY()<0){
-				b.setX(x);
+				b.setX(x); //x value will be wrong!
 				b.setY(0);
-				b.setXV(xvel);
+				b.setXV(xvel); //so will the X velocity!
 				b.setYV(yvel);
 				break;
 			}

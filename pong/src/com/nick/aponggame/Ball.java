@@ -76,4 +76,12 @@ public class Ball
 		yVel=y;
 		return;
 	}
+	public int getXV()
+	{
+		return xVel;
+	}
+	public int getYV()
+	{
+		return yVel;
+	}
 }
