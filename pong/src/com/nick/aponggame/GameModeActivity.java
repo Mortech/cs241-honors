@@ -80,7 +80,7 @@ public class GameModeActivity extends Activity
         
         //set mode here
         mode=getIntent().getStringExtra(MainActivity.GAME_MODE);
-        if(mode.equals("2p"))
+        if(!mode.equals("1p"))
         {
             usesNetwork=true;
             // Get local Bluetooth adapter
@@ -157,7 +157,15 @@ public class GameModeActivity extends Activity
     
     private void setupGame() {
         Log.d(TAG, "setupGame()");
-        
+        if(mode.equals("2p0")){
+        	ensureDiscoverable();
+        	//Wait for another device to connect!
+        }
+        if(mode.equals("2p1")){
+        	Intent serverIntent = new Intent(this, DeviceList.class);
+            startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE);
+            //Wait for successful connect!
+        }
         view=new StateHandler2P(this);
 
 
