@@ -3,15 +3,24 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
 
-    
-    <Button android:id="@+id/button0"
+    <Button
+        android:id="@+id/button0"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/buttonStart2p"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="150dp"
         android:onClick="button0Clicked"
-    	android:layout_centerVertical="true"
-    	android:layout_centerHorizontal="true"
-    />
-    
+        android:text="@string/buttonStart2p" />
+
+    <Button
+        android:id="@+id/Button01"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignRight="@+id/button0"
+        android:layout_below="@+id/button0"
+        android:layout_marginTop="86dp"
+        android:onClick="button1Clicked"
+        android:text="@string/buttonJoin2p" />
 
 </RelativeLayout>

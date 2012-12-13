@@ -32,6 +32,12 @@ public class MainActivity extends Activity
     	startActivity(intent);
     }
     
+    public void button1Clicked(View current)
+    {
+    	Intent intent=new Intent(this, GameModeActivity.class);
+    	intent.putExtra(GAME_MODE, "2p");//type of game this button represented
+    	startActivity(intent);
+    }
     
     /*
 	 * IDEAS:

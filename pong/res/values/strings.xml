@@ -23,5 +23,6 @@
     <string name="connect">Connect a device</string>
     <string name="discoverable">Make discoverable</string>
     <string name="send">Send</string>
+    <string name="buttonJoin2p">Join 2-Player Game!</string>
 
 </resources>

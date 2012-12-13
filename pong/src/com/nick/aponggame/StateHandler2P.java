@@ -20,6 +20,7 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 	private ArrayList<Ball> balls; //TODO: balls need to be protected somehow...
 	private Paddle paddle;
 	private boolean isPlayer1;
+	private volatile boolean running=true;
 	private Thread gameThread;
 	private Activity owner;
 	
@@ -113,7 +114,7 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 
 	}
 
-	/* thread part of view. continuouslt updates ball position, and draws 
+	/* thread part of view. continuously updates ball position, and draws 
 	 * ball and paddle
 	 * 
 	 * @param - none
@@ -121,7 +122,7 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 	 */
 	public void run()
 	{
-		while(scoreP1<winningScore && scoreP2<winningScore)
+		while(scoreP1<winningScore && scoreP2<winningScore && running)
 		{
 			Canvas canvas = holder.lockCanvas();
 			
@@ -182,9 +183,9 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 	}
 
     //Implemented as part of the SurfaceHolder.Callback interface. ends thread 
-	//abrubtly if needed
+	//abruptly if needed
 	//@Override
 	public void surfaceDestroyed(SurfaceHolder holder) {
-        gameThread.stop();
+        running=false;
 	}
 }
