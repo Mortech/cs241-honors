@@ -37,7 +37,7 @@ public class GameModeActivity extends Activity
 	private String mode;
 	boolean usesNetwork;
 	// Debugging
-    private static final String TAG = "BluetoothChat";
+    private static final String TAG = "BluetoothPong";
     private static final boolean D = true;
 
     // Message types sent from the BluetoothChatService Handler
@@ -82,8 +82,6 @@ public class GameModeActivity extends Activity
         mode=getIntent().getStringExtra(MainActivity.GAME_MODE);
         if(mode.equals("2p"))
         {
-        	System.out.println("Hello!");
-        	view=new StateHandler2P(this);
             usesNetwork=true;
             // Get local Bluetooth adapter
             mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -101,11 +99,6 @@ public class GameModeActivity extends Activity
         	usesNetwork=false;
         }
         
-        view.setFocusable(true);
-	   	view.setZOrderOnTop(true);
-	   
-	   	
-	   	setContentView(view);
 	   	return;
     }
     
@@ -121,7 +114,7 @@ public class GameModeActivity extends Activity
             startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
         // Otherwise, setup the chat session
         } else {
-            if (mChatService == null) setupChat();
+            if (mChatService == null) setupGame();
         }
     }
     
@@ -150,8 +143,7 @@ public class GameModeActivity extends Activity
     	super.onPause();
     	if(usesNetwork)
     	{
-    		NetworkStateHandler temp=(NetworkStateHandler)view;
-    		unregisterReceiver(temp.getReceiver());
+    		
     	}
     }
     
@@ -163,9 +155,18 @@ public class GameModeActivity extends Activity
         if(D) Log.e(TAG, "--- ON DESTROY ---");
     }
     
-    private void setupChat() {
-        Log.d(TAG, "setupChat()");
+    private void setupGame() {
+        Log.d(TAG, "setupGame()");
+        
+        view=new StateHandler2P(this);
 
+
+        view.setFocusable(true);
+	   	view.setZOrderOnTop(true);
+	   
+	   	
+	   	setContentView(view);
+	   	/*
         // Initialize the array adapter for the conversation thread
         mConversationArrayAdapter = new ArrayAdapter<String>(this, R.layout.message);
         mConversationView = (ListView) findViewById(R.id.in);
@@ -191,6 +192,7 @@ public class GameModeActivity extends Activity
 
         // Initialize the buffer for outgoing messages
         mOutStringBuffer = new StringBuffer("");
+        */
     }
     
     private void ensureDiscoverable() {
@@ -306,8 +308,8 @@ public class GameModeActivity extends Activity
         case REQUEST_ENABLE_BT:
             // When the request to enable Bluetooth returns
             if (resultCode == Activity.RESULT_OK) {
-                // Bluetooth is now enabled, so set up a chat session
-                setupChat();
+                // Bluetooth is now enabled, so set up a match
+                setupGame();
             } else {
                 // User did not enable Bluetooth or an error occured
                 Log.d(TAG, "BT not enabled");

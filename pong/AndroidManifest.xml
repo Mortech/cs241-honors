@@ -26,11 +26,6 @@
         <activity
             android:name=".GameModeActivity"
             android:label="@string/title_activity_game_mode" >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
         <activity android:name=".DeviceList"
                   android:label="@string/select_device"
