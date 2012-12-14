@@ -26,7 +26,6 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 	private Activity owner;
     private Server server;
     private boolean isInitialDraw=true;
-	
 
 	public StateHandler2P(Activity context, boolean play, Server serve)
 	{
@@ -75,7 +74,6 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 				// Get the message bytes and tell the BluetoothChatService to write
 	            byte[] send = message.getBytes();
 	            
-	            
 	            server.write(send);
 	            balls.remove(b);
 			}
@@ -86,8 +84,8 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 			else if(	b.getX() > paddle.getX() && 
 						b.getX() < paddle.getX()+paddle.getLength() &&
 				
-						b.getY()+b.getSize() >= paddle.getY() &&
-						b.getY()+b.getSize()-b.getYV() <= paddle.getHeight()/2)	//the /2 is for safe measure 
+						b.getY()+b.getSize() >= paddle.getY()-(paddle.getHeight()/2) &&
+						b.getY()+b.getSize()-b.getYV() <= paddle.getY()-(paddle.getHeight()/2))	//the /2 is for safe measure 
 			{//if within paddle's x positions, and was above paddle before move, and is now below paddle, collission with paddle 
 				b.reverseY();
 			}
