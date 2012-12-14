@@ -63,7 +63,7 @@ public class GameModeActivity extends Activity
     // Local Bluetooth adapter
     private BluetoothAdapter mBluetoothAdapter = null;
     // Member object for the chat services
-    private Server mChatService = null;
+    private Server btServer = null;
 	
 
     @Override
@@ -73,42 +73,57 @@ public class GameModeActivity extends Activity
         
         //set mode here
         mode=getIntent().getStringExtra(MainActivity.GAME_MODE);
-        if(!mode.equals("1p"))
+        if(!mode.equals("1p"))//if not one player, begin setup of network
         {
             usesNetwork=true;
             // Get local Bluetooth adapter
             mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
             // If the adapter is null, then Bluetooth is not supported
-            if (mBluetoothAdapter == null) {
+            if (mBluetoothAdapter == null)
+            {
                 Toast.makeText(this, "Bluetooth is not available", Toast.LENGTH_LONG).show();
                 finish();
                 return;
             }
-        }
+        }//theorhetically, at this point, there would be an else if 1p mode was chosen
         else
         {
         	view=null;
         	usesNetwork=false;
         }
         
+        
 	   	return;
     }
     
     @Override
-    public void onStart() {
+    public void onStart() 
+    {
         super.onStart();
-        if(D) Log.e(TAG, "++ ON START ++");
-
-        // If BT is not on, request that it be enabled.
-        // setupChat() will then be called during onActivityResult
-        if (!mBluetoothAdapter.isEnabled()) {
-            Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
-        // Otherwise, setup the chat session
-        } else {
-            if (mChatService == null) setupGame();
-        }
+        if(D) 
+    	{
+        	Log.e(TAG, "++ ON START ++");
+    	}
+        
+        //Handle what the game mode is
+        if(usesNetwork)
+        {
+        	// If BT is not on, request that it be enabled.
+	        // setupChat() will then be called during onActivityResult
+	        if (!mBluetoothAdapter.isEnabled()) {
+	            Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+	            startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
+	        // Otherwise, setup the chat session
+	        } 
+	        else if (btServer == null)
+	        {
+	        	setup2pGame();//handles all the games that use 2p
+	        }
+        }//else handle any 1p game mode, if we make any
+        
+        
+        return;
     }
     
     @Override
@@ -120,11 +135,13 @@ public class GameModeActivity extends Activity
     		// Performing this check in onResume() covers the case in which BT was
             // not enabled during onStart(), so we were paused to enable it...
             // onResume() will be called when ACTION_REQUEST_ENABLE activity returns.
-            if (mChatService != null) {
+            if (btServer != null)
+            {
                 // Only if the state is STATE_NONE, do we know that we haven't started already
-                if (mChatService.getState() == Server.STATE_NONE) {
+                if (btServer.getState() == Server.STATE_NONE)
+                {
                   // Start the Bluetooth chat services
-                  mChatService.start();
+                	btServer.start();
                 }
             }
     	}
@@ -134,63 +151,46 @@ public class GameModeActivity extends Activity
     protected void onPause()
     {
     	super.onPause();
-    	if(usesNetwork)
-    	{
-    		
-    	}
     }
     
     @Override
-    public void onDestroy() {
+    public void onDestroy()
+    {
         super.onDestroy();
-        // Stop the Bluetooth chat services
-        if (mChatService != null) mChatService.stop();
-        if(D) Log.e(TAG, "--- ON DESTROY ---");
+        if(usesNetwork)
+        {
+	        // Stop the Bluetooth chat services
+	        if (btServer != null) btServer.stop();
+	        if(D) Log.e(TAG, "--- ON DESTROY ---");
+        }
     }
     
-    private void setupGame() {
-        Log.d(TAG, "setupGame()");
-        mChatService = new Server(this, mHandler);
-        if(mode.equals("2p0")){
-        	ensureDiscoverable();
-        	//Wait for another device to connect!
-        }
-        if(mode.equals("2p1")){
-        	Intent serverIntent = new Intent(this, DeviceList.class);
-            startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE);
-            //Wait for successful connect!
-        }
-	   	/*
-        // Initialize the array adapter for the conversation thread
-        mConversationArrayAdapter = new ArrayAdapter<String>(this, R.layout.message);
-        mConversationView = (ListView) findViewById(R.id.in);
-        mConversationView.setAdapter(mConversationArrayAdapter);
-
-        // Initialize the compose field with a listener for the return key
-        mOutEditText = (EditText) findViewById(R.id.edit_text_out);
-        mOutEditText.setOnEditorActionListener(mWriteListener);
-
-        // Initialize the send button with a listener that for click events
-        mSendButton = (Button) findViewById(R.id.button_send);
-        mSendButton.setOnClickListener(new OnClickListener() {
-            public void onClick(View v) {
-                // Send a message using content of the edit text widget
-                TextView view = (TextView) findViewById(R.id.edit_text_out);
-                String message = view.getText().toString();
-                sendMessage(message);
-            }
-        });
-
-        // Initialize the BluetoothChatService to perform bluetooth connections
-        mChatService = new Server(this, mHandler);
-
-        // Initialize the buffer for outgoing messages
-        mOutStringBuffer = new StringBuffer("");
-        */
-    }
+   private void setup2pGame()
+   {
+       Log.d(TAG, "setupGame()");
+       btServer = new Server(this, mHandler);
+       
+       
+       if(mode.equals("2p0"))
+       {
+       	ensureDiscoverable();
+       	//Wait for another device to connect!
+       }
+       else if(mode.equals("2p1"))
+       {
+       	Intent serverIntent = new Intent(this, DeviceList.class);
+           startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE);
+           //Wait for successful connect!
+       }
+       //else if/else, any other game 2p game mode, if we make any
+       
+       
+       return;
+   }
     
-    private void startGame(){
-    	view=new StateHandler2P(this, mode.equals("2p0"), mChatService);
+    private void startGame()
+    {
+    	view=new StateHandler2P(this, mode.equals("2p0"), btServer);
 
 
         view.setFocusable(true);
@@ -200,64 +200,58 @@ public class GameModeActivity extends Activity
 	   	setContentView(view);
     }
     
-    private void ensureDiscoverable() {
-        if(D) Log.d(TAG, "ensure discoverable");
-        if (mBluetoothAdapter.getScanMode() !=
-            BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
-            Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-            discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
-            startActivity(discoverableIntent);
-        }
-    }
-
     // The Handler that gets information back from the BluetoothChatService
-    private final Handler mHandler = new Handler() {
+    private final Handler mHandler = new Handler()
+    {
         @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-            case MESSAGE_STATE_CHANGE:
-                if(D) Log.i(TAG, "MESSAGE_STATE_CHANGE: " + msg.arg1);
-                switch (msg.arg1) {
-                case Server.STATE_CONNECTED:
-                	if(!started){
-                		started=true;
-                		startGame();
-                	}
-                    break;
-                case Server.STATE_CONNECTING:
-                    break;
-                case Server.STATE_LISTEN:
-                case Server.STATE_NONE:
-                    break;
-                }
-                break;
-            case MESSAGE_WRITE:
-                //byte[] writeBuf = (byte[]) msg.obj;
-            	System.out.println("Message written!");
-                // construct a string from the buffer
-                //String writeMessage = new String(writeBuf);
-                //mConversationArrayAdapter.add("Me:  " + writeMessage);
-                break;
-            case MESSAGE_READ:
-                byte[] readBuf = (byte[]) msg.obj;
-                // construct a string from the valid bytes in the buffer
-                String readMessage = new String(readBuf, 0, msg.arg1);
-                String[] split=readMessage.split(" ");
-                int x=Integer.parseInt(split[0]);
-                int xv=Integer.parseInt(split[1]);
-                int yv=Integer.parseInt(split[2]);
-                view.returningBall(x, xv, yv);
-                break;
-            case MESSAGE_DEVICE_NAME:
-                // save the connected device's name
-                mConnectedDeviceName = msg.getData().getString(DEVICE_NAME);
-                Toast.makeText(getApplicationContext(), "Connected to "
-                               + mConnectedDeviceName, Toast.LENGTH_SHORT).show();
-                break;
-            case MESSAGE_TOAST:
-                Toast.makeText(getApplicationContext(), msg.getData().getString(TOAST),
-                               Toast.LENGTH_SHORT).show();
-                break;
+        public void handleMessage(Message msg)
+        {
+            switch (msg.what)
+            {
+	            case MESSAGE_STATE_CHANGE:
+	                if(D) Log.i(TAG, "MESSAGE_STATE_CHANGE: " + msg.arg1);
+	                switch (msg.arg1) 
+	                {
+		                case Server.STATE_CONNECTED:
+		                	if(!started){
+		                		started=true;
+		                		startGame();
+		                	}
+		                    break;
+		                case Server.STATE_CONNECTING:
+		                    break;
+		                case Server.STATE_LISTEN:
+		                case Server.STATE_NONE:
+		                    break;
+	                }
+	                break;
+	            case MESSAGE_WRITE:
+	                //byte[] writeBuf = (byte[]) msg.obj;
+	            	System.out.println("Message written!");
+	                // construct a string from the buffer
+	                //String writeMessage = new String(writeBuf);
+	                //mConversationArrayAdapter.add("Me:  " + writeMessage);
+	                break;
+	            case MESSAGE_READ:
+	                byte[] readBuf = (byte[]) msg.obj;
+	                // construct a string from the valid bytes in the buffer
+	                String readMessage = new String(readBuf, 0, msg.arg1);
+	                String[] split=readMessage.split(" ");
+	                int x=Integer.parseInt(split[0]);
+	                int xv=Integer.parseInt(split[1]);
+	                int yv=Integer.parseInt(split[2]);
+	                view.returningBall(x, xv, yv);
+	                break;
+	            case MESSAGE_DEVICE_NAME:
+	                // save the connected device's name
+	                mConnectedDeviceName = msg.getData().getString(DEVICE_NAME);
+	                Toast.makeText(getApplicationContext(), "Connected to "
+	                               + mConnectedDeviceName, Toast.LENGTH_SHORT).show();
+	                break;
+	            case MESSAGE_TOAST:
+	                Toast.makeText(getApplicationContext(), msg.getData().getString(TOAST),
+	                               Toast.LENGTH_SHORT).show();
+	                break;
             }
         }
     };
@@ -274,7 +268,7 @@ public class GameModeActivity extends Activity
                 // Get the BLuetoothDevice object
                 BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
                 // Attempt to connect to the device
-                mChatService.connect(device);
+                btServer.connect(device);
             }
             break;
         case REQUEST_ENABLE_BT:
@@ -288,6 +282,21 @@ public class GameModeActivity extends Activity
                 Toast.makeText(this, R.string.bt_not_enabled_leaving, Toast.LENGTH_SHORT).show();
                 finish();
             }
+        }
+    }
+    
+    private void ensureDiscoverable()
+    {
+        if(D)
+        {
+        	Log.d(TAG, "ensure discoverable");
+        }
+        if (mBluetoothAdapter.getScanMode() !=
+            BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE)
+        {
+            Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+            discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
+            startActivity(discoverableIntent);
         }
     }
     
