@@ -168,6 +168,7 @@ public class Server {
      * @see ConnectedThread#write(byte[])
      */
     public void write(byte[] out) {
+    	System.out.println("writing to output!");
         // Create temporary object
         ConnectedThread r;
         // Synchronize a copy of the ConnectedThread

@@ -39,6 +39,7 @@ public class GameModeActivity extends Activity
 	// Debugging
     private static final String TAG = "BluetoothPong";
     private static final boolean D = true;
+    private boolean started=false;
 
     // Message types sent from the BluetoothChatService Handler
     public static final int MESSAGE_STATE_CHANGE = 1;
@@ -218,7 +219,10 @@ public class GameModeActivity extends Activity
                 if(D) Log.i(TAG, "MESSAGE_STATE_CHANGE: " + msg.arg1);
                 switch (msg.arg1) {
                 case Server.STATE_CONNECTED:
-                    startGame();
+                	if(!started){
+                		started=true;
+                		startGame();
+                	}
                     break;
                 case Server.STATE_CONNECTING:
                     break;

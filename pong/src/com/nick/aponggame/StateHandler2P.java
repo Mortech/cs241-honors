@@ -82,7 +82,7 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 				b.setXV(0);
 				b.setYV(0);
 				b.setX(-100); 
-				b.setY(-100);
+				b.setY(10); //need it to be somewhere...
 			}
 			if(b.getX()+b.getSize() > getWidth() || b.getX() < 0)
 			{//Collisions with left/right walls
