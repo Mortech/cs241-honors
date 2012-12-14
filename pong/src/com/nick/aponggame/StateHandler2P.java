@@ -18,7 +18,22 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 	private int scoreP1;
 	private int scoreP2;
 	private int winningScore;
-	private ArrayList<Ball> balls; //TODO: balls need to be protected somehow...
+	public class SynchArray{
+		private ArrayList<Ball> list=new ArrayList<Ball>();
+		public synchronized void add(Ball b){
+			list.add(b);
+		}
+		public synchronized void remove(Ball b){
+			list.remove(b);
+		}
+		public synchronized Ball get(int i){
+			return list.get(i);
+		}
+		public synchronized int size(){
+			return list.size();
+		}
+	}
+	private SynchArray balls; //TODO: balls need to be protected somehow...
 	private Paddle paddle;
 	private boolean isPlayer1;
 	private volatile boolean running=true;
@@ -32,7 +47,7 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 		super(context);
 		
 		owner=context;
-		balls=new ArrayList<Ball>();
+		balls=new SynchArray();
 		paddle=new Paddle(122, 680, 75, 10); //professional version needs a way to know height and width to set it at proper location, not a big deal
 		holder=getHolder();
 		holder.addCallback(this);
@@ -55,8 +70,9 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 	//used by run
 	public void update()// later change to return int reflecting who scored, if anyone
 	{
-		for(Ball b : balls)
+		for(int i=0; i<balls.size(); i++)
 		{
+			Ball b=balls.get(i);
 			b.move();
 		
 			//DEATH!
@@ -76,6 +92,7 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 	            
 	            server.write(send);
 	            balls.remove(b);
+	            i--;
 			}
 			else if(b.getX()+b.getSize() > getWidth() || b.getX() < 0)
 			{//Collisions with left/right walls
@@ -102,8 +119,9 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 		{
 			isInitialDraw=false;
 			
-			for(Ball b : balls)
+			for(int i=0; i<balls.size(); i++)
 			{
+				Ball b=balls.get(i);
 				b.setX(getWidth()/2 - b.getSize()/2);
 				b.setY(getHeight()/5);
 			}
@@ -118,8 +136,9 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 		paint.setARGB(200, 0, 200, 0);
 	
 		//draw the ball
-		for(Ball b : balls)
+		for(int i=0; i<balls.size(); i++)
 		{
+			Ball b=balls.get(i);
 			canvas.drawRect(new Rect(	b.getX(), 				b.getY(),
 										b.getX() + b.getSize(), b.getY() + b.getSize()),
 										paint);
