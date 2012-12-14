@@ -45,7 +45,7 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 		
 		
 		
-		isPlayer1=play;//WILL BE DYNAMIC ONCE WE HAVE NETWORK CODE
+		isPlayer1=play;//determined by network coding
 	   	if(isPlayer1)
 	   		balls.add(new Ball(155, 10, 3, 3, 10));//always starts on p1 screen [for now?]
 	   		//professional version needs a way to know height and width to set it at proper starting location, not a big deal

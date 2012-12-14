@@ -1,35 +1,18 @@
 package com.nick.aponggame;
 
-import java.util.ArrayList;
-
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.View.OnClickListener;
-import android.view.inputmethod.EditorInfo;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
+
 
 public class GameModeActivity extends Activity
 {
@@ -86,7 +69,7 @@ public class GameModeActivity extends Activity
                 finish();
                 return;
             }
-        }//theorhetically, at this point, there would be an else if 1p mode was chosen
+        }//theorhetically, at this point, there would be an else if for each type of 1p mode if chosen. Should this ever happen, make sure to use startGame();
         else
         {
         	view=null;
@@ -95,35 +78,6 @@ public class GameModeActivity extends Activity
         
         
 	   	return;
-    }
-    
-    @Override
-    public void onStart() 
-    {
-        super.onStart();
-        if(D) 
-    	{
-        	Log.e(TAG, "++ ON START ++");
-    	}
-        
-        //Handle what the game mode is
-        if(usesNetwork)
-        {
-        	// If BT is not on, request that it be enabled.
-	        // setupChat() will then be called during onActivityResult
-	        if (!mBluetoothAdapter.isEnabled()) {
-	            Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-	            startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
-	        // Otherwise, setup the chat session
-	        } 
-	        else if (btServer == null)
-	        {
-	        	setup2pGame();//handles all the games that use 2p
-	        }
-        }//else handle any 1p game mode, if we make any
-        
-        
-        return;
     }
     
     @Override
@@ -165,6 +119,72 @@ public class GameModeActivity extends Activity
         }
     }
     
+    @Override
+    public void onStart() 
+    {
+        super.onStart();
+        if(D) 
+    	{
+        	Log.e(TAG, "++ ON START ++");
+    	}
+        
+        //Handle what the game mode is
+        if(usesNetwork)
+        {
+        	// If BT is not on, request that it be enabled.
+	        // setupChat() will then be called during onActivityResult
+	        if (!mBluetoothAdapter.isEnabled())
+	        {
+	            Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+	            startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
+	        // Otherwise, setup the chat session
+	        } 
+	        else if (btServer == null)	//reaches hear only if bluetooth was already enabled
+	        {
+	        	setup2pGame();//handles all the games that use 2p
+	        }
+        }//else handle any 1p game mode, if we make any
+        
+        
+        return;
+    }
+    
+    
+    public void onActivityResult(int requestCode, int resultCode, Intent data)
+    {
+        if(D) Log.d(TAG, "onActivityResult " + resultCode);
+        
+        
+        switch (requestCode)
+        {
+	        case REQUEST_CONNECT_DEVICE:	// When Server returns with a device to connect
+	            if (resultCode == Activity.RESULT_OK) 
+	            {
+	                // Get the device MAC address
+	                String address = data.getExtras().getString(DeviceList.EXTRA_DEVICE_ADDRESS);
+	                // Get the BLuetoothDevice object
+	                BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
+	                // Attempt to connect to the device
+	                btServer.connect(device);
+	            }
+	            break;
+	        case REQUEST_ENABLE_BT:	// When the request to enable Bluetooth returns
+	            if (resultCode == Activity.RESULT_OK)
+	            {
+	                // Bluetooth is now enabled, so set up a match
+	                setup2pGame();
+	            } 
+	            else
+	            {
+	                // User did not enable Bluetooth or an error occured
+	                Log.d(TAG, "BT not enabled");
+	                Toast.makeText(this, R.string.bt_not_enabled_leaving, Toast.LENGTH_SHORT).show();
+	                finish();
+	            }
+        }
+    }
+    
+    
    private void setup2pGame()
    {
        Log.d(TAG, "setupGame()");
@@ -173,13 +193,17 @@ public class GameModeActivity extends Activity
        
        if(mode.equals("2p0"))
        {
-       	ensureDiscoverable();
-       	//Wait for another device to connect!
+    	   view=new StateHandler2P(this, true, btServer);
+    	   
+    	   ensureDiscoverable();
+    	   //Wait for another device to connect!
        }
        else if(mode.equals("2p1"))
        {
-       	Intent serverIntent = new Intent(this, DeviceList.class);
-           startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE);
+    	   view=new StateHandler2P(this, false, btServer);
+    	   
+    	   Intent serverIntent = new Intent(this, DeviceList.class);
+    	   startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE);
            //Wait for successful connect!
        }
        //else if/else, any other game 2p game mode, if we make any
@@ -188,20 +212,8 @@ public class GameModeActivity extends Activity
        return;
    }
     
-    private void startGame()
-    {
-    	view=new StateHandler2P(this, mode.equals("2p0"), btServer);
-
-
-        view.setFocusable(true);
-	   	view.setZOrderOnTop(true);
-	   
-	   	
-	   	setContentView(view);
-    }
-    
-    // The Handler that gets information back from the BluetoothChatService
-    private final Handler mHandler = new Handler()
+    // The Handler that gets information back from the Server
+    private final Handler mHandler = new Handler()	//technically a field, but its basically the a function equivalent of an interrupt handler
     {
         @Override
         public void handleMessage(Message msg)
@@ -210,36 +222,26 @@ public class GameModeActivity extends Activity
             {
 	            case MESSAGE_STATE_CHANGE:
 	                if(D) Log.i(TAG, "MESSAGE_STATE_CHANGE: " + msg.arg1);
-	                switch (msg.arg1) 
+	                
+	                
+	                if(msg.arg1 == Server.STATE_CONNECTED) 
 	                {
-		                case Server.STATE_CONNECTED:
-		                	if(!started){
-		                		started=true;
-		                		startGame();
-		                	}
-		                    break;
-		                case Server.STATE_CONNECTING:
-		                    break;
-		                case Server.STATE_LISTEN:
-		                case Server.STATE_NONE:
-		                    break;
+	                	if(!started)
+	                	{
+	                		started=true;
+	                		startGame();
+	                	}
 	                }
 	                break;
 	            case MESSAGE_WRITE:
-	                //byte[] writeBuf = (byte[]) msg.obj;
-	            	System.out.println("Message written!");
-	                // construct a string from the buffer
-	                //String writeMessage = new String(writeBuf);
-	                //mConversationArrayAdapter.add("Me:  " + writeMessage);
+	            	System.out.println("Message written!");		//essentially do nothing
 	                break;
 	            case MESSAGE_READ:
-	                byte[] readBuf = (byte[]) msg.obj;
-	                // construct a string from the valid bytes in the buffer
-	                String readMessage = new String(readBuf, 0, msg.arg1);
-	                String[] split=readMessage.split(" ");
+	                String[] split=(new String((byte[]) msg.obj, 0, msg.arg1)).split(" ");	//split up string form of byte data
 	                int x=Integer.parseInt(split[0]);
 	                int xv=Integer.parseInt(split[1]);
 	                int yv=Integer.parseInt(split[2]);
+	                
 	                view.returningBall(x, xv, yv);
 	                break;
 	            case MESSAGE_DEVICE_NAME:
@@ -255,35 +257,15 @@ public class GameModeActivity extends Activity
             }
         }
     };
-
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if(D) Log.d(TAG, "onActivityResult " + resultCode);
-        switch (requestCode) {
-        case REQUEST_CONNECT_DEVICE:
-            // When DeviceListActivity returns with a device to connect
-            if (resultCode == Activity.RESULT_OK) {
-                // Get the device MAC address
-                String address = data.getExtras()
-                                     .getString(DeviceList.EXTRA_DEVICE_ADDRESS);
-                // Get the BLuetoothDevice object
-                BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
-                // Attempt to connect to the device
-                btServer.connect(device);
-            }
-            break;
-        case REQUEST_ENABLE_BT:
-            // When the request to enable Bluetooth returns
-            if (resultCode == Activity.RESULT_OK) {
-                // Bluetooth is now enabled, so set up a match
-                setup2pGame();
-            } else {
-                // User did not enable Bluetooth or an error occured
-                Log.d(TAG, "BT not enabled");
-                Toast.makeText(this, R.string.bt_not_enabled_leaving, Toast.LENGTH_SHORT).show();
-                finish();
-            }
-        }
+    
+    private void startGame()//do not call unless view is already set
+    {
+    	view.setFocusable(true);
+	   	view.setZOrderOnTop(true);
+	   	setContentView(view);
+	   	return;
     }
+
     
     private void ensureDiscoverable()
     {
@@ -299,6 +281,7 @@ public class GameModeActivity extends Activity
             startActivity(discoverableIntent);
         }
     }
+    
     
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
