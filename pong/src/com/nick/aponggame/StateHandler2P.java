@@ -24,12 +24,12 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 	private volatile boolean running=true;
 	private Thread gameThread;
 	private Activity owner;
-    private Server mChatService;
+    private Server server;
+    private boolean isInitialDraw=true;
 	
-	
-//NOTE:THIS HORIZONTAL ORIENTATION RESULTS IN UNTESTABLE BEHAVIOR ATM
+
 	public StateHandler2P(Activity context, boolean play, Server serve)
-	{//NOTE: getHeight() and getWidth() will return 0 at this point
+	{
 		super(context);
 		
 		owner=context;
@@ -39,20 +39,18 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 		holder.addCallback(this);
 		scoreP1=0;
 		scoreP2=0;
-		winningScore=10; //MAKE CHOOSABLE LATER
+		winningScore=10; //TODO: make choosable later
 		gameThread=new Thread(this);
-		mChatService=serve;
-		
-		
-		
+		server=serve;
 		isPlayer1=play;//determined by network coding
-	   	if(isPlayer1)
+		
+		if(isPlayer1)
+   		{
 	   		balls.add(new Ball(155, 10, 3, 3, 10));//always starts on p1 screen [for now?]
-	   		//professional version needs a way to know height and width to set it at proper starting location, not a big deal
+   		}
+		
 	   	
-	   	//HANDLE SETTING UP NETWORK HERE ?
-	   	
-	   	
+	   	return;
 	}
 	
 	//used by run
@@ -66,40 +64,59 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 			if(b.getY() > getHeight())
 			{//Collisions with the top/bot walls
 				b.setX(getWidth()/2-b.getSize()/2); 
-				b.setY(10);
-				b.setXV(3);//in professional version, would make random angle and set velocity appropriately
+				b.setY(getHeight()/5);
+				b.setXV(3);//TODO: make random angle and set velocity appropriately
 				b.setYV(3);
-				scoreP2++;
+				scoreP2++;	//TODO: sync score on both devices
 			}
-			if(b.getY() < 0)
+			else if(b.getY() < 0)
 			{
 				String message=b.getX()+" "+b.getXV()+" "+b.getYV()+" ";
 				// Get the message bytes and tell the BluetoothChatService to write
 	            byte[] send = message.getBytes();
-	            mChatService.write(send);
+	            
+	            
+	            server.write(send);
 	            balls.remove(b);
-	            continue;
 			}
-			if(b.getX()+b.getSize() > getWidth() || b.getX() < 0)
+			else if(b.getX()+b.getSize() > getWidth() || b.getX() < 0)
 			{//Collisions with left/right walls
 				b.reverseX();  
 			}
-			if(	b.getX() > paddle.getX() &&
-				b.getX() < paddle.getX()+paddle.getLength() &&
-				b.getY()+b.getSize() >= paddle.getY()) 
-			{//collision with paddles
+			else if(	b.getX() > paddle.getX() && 
+						b.getX() < paddle.getX()+paddle.getLength() &&
+				
+						b.getY()+b.getSize() >= paddle.getY() &&
+						b.getY()+b.getSize()-b.getYV() <= paddle.getHeight()/2)	//the /2 is for safe measure 
+			{//if within paddle's x positions, and was above paddle before move, and is now below paddle, collission with paddle 
 				b.reverseY();
 			}
 		}
+		
+		
+		return;
 	}
 	
 	//used by run()
 	public void draw(Canvas canvas, Paint paint)
 	{
-		//Clear the screen
+		if(isInitialDraw)
+		{
+			isInitialDraw=false;
+			
+			for(Ball b : balls)
+			{
+				b.setX(getWidth()/2 - b.getSize()/2);
+				b.setY(getHeight()/5);
+			}
+			
+			paddle.setX(getWidth()/2 - paddle.getLength()/2);
+			paddle.setY(getHeight()*9/10);
+		}
+		
+		
+		//Clear the screen and set color
 		canvas.drawRGB(20, 20, 20);
-	
-		//set the color
 		paint.setARGB(200, 0, 200, 0);
 	
 		//draw the ball
@@ -115,7 +132,9 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 									paddle.getX() + paddle.getLength(), 
 									paddle.getY() + paddle.getHeight()), 
 									paint); //bottom bat
-
+			
+		
+		return;
 	}
 
 	/* thread part of view. continuously updates ball position, and draws 
@@ -130,12 +149,14 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 		{
 			Canvas canvas = holder.lockCanvas();
 			
-			//HANDLE STUFF SENT BY NETWORK	
+			
 			update();
  	 		draw(canvas, new Paint());
  	 		holder.unlockCanvasAndPost(canvas);
  	 	}	
-		//HANDLE WINNER HERE	
+		//TODO: HANDLE WINNER HERE
+		
+		//TODO: I think there should be a finish() call here? but I'm not sure
 		return;
 	}
 	
@@ -144,11 +165,11 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 	 * @param - x position, x velocity, y velocity
 	 * @return - none
 	 */
-	public void returningBall(int x, int xvel, int yvel){
-		balls.add(new Ball(x, 0, xvel*(-1), yvel*(-1), 10));
+	public void returningBall(int x, int xvel, int yvel)
+	{
+		balls.add(new Ball(getWidth() - x, 0, xvel*(-1), yvel*(-1), 10));
 	}
-	
-	//TODO: send ball data over network
+
 	
     /* handles touch event. moves paddle horizontally to where screen was touched
      * 
@@ -160,28 +181,28 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 		paddle.setX((int)(e.getX()));
 		return true;
 	}
-    
-    
 	
 	
 	//Implemented as part of the SurfaceHolder.Callback interface
 	//@Override
-	public void surfaceChanged(SurfaceHolder holder, int format, int width,
-			int height) {
+	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height)
+	{
 		//Mandatory, just swallowing it for this
 
 	}
 
     //Implemented as part of the SurfaceHolder.Callback interface. starts thread
 	//@Override
-	public void surfaceCreated(SurfaceHolder holder) {
+	public void surfaceCreated(SurfaceHolder holder)
+	{
 		gameThread.start();
 	}
 
     //Implemented as part of the SurfaceHolder.Callback interface. ends thread 
 	//abruptly if needed
 	//@Override
-	public void surfaceDestroyed(SurfaceHolder holder) {
+	public void surfaceDestroyed(SurfaceHolder holder)
+	{
         running=false;
 	}
 }
