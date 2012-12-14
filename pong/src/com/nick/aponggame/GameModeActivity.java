@@ -233,6 +233,7 @@ public class GameModeActivity extends Activity
                 break;
             case MESSAGE_WRITE:
                 //byte[] writeBuf = (byte[]) msg.obj;
+            	System.out.println("Message written!");
                 // construct a string from the buffer
                 //String writeMessage = new String(writeBuf);
                 //mConversationArrayAdapter.add("Me:  " + writeMessage);

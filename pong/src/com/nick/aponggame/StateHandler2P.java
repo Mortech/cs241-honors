@@ -47,7 +47,7 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 		
 		isPlayer1=play;//WILL BE DYNAMIC ONCE WE HAVE NETWORK CODE
 	   	if(isPlayer1)
-	   		balls.add(new Ball(155, 10, 0, 5, 10));//always starts on p1 screen [for now?]
+	   		balls.add(new Ball(155, 10, 3, 3, 10));//always starts on p1 screen [for now?]
 	   		//professional version needs a way to know height and width to set it at proper starting location, not a big deal
 	   	
 	   	//HANDLE SETTING UP NETWORK HERE ?
@@ -69,7 +69,6 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 				b.setY(10);
 				b.setXV(3);//in professional version, would make random angle and set velocity appropriately
 				b.setYV(3);
-				
 				scoreP2++;
 			}
 			if(b.getY() < 0)
@@ -78,11 +77,8 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 				// Get the message bytes and tell the BluetoothChatService to write
 	            byte[] send = message.getBytes();
 	            mChatService.write(send);
-	            
-				b.setXV(0);
-				b.setYV(0);
-				b.setX(-100); 
-				b.setY(10); //need it to be somewhere...
+	            balls.remove(b);
+	            continue;
 			}
 			if(b.getX()+b.getSize() > getWidth() || b.getX() < 0)
 			{//Collisions with left/right walls
@@ -149,16 +145,7 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 	 * @return - none
 	 */
 	public void returningBall(int x, int xvel, int yvel){
-		for(Ball b : balls){ //Only works for one ball!
-			if(b.getY()<0){
-				b.setX(x); //x value will be wrong!
-				b.setY(0);
-				b.setXV(-1*xvel);
-				b.setYV(-1*yvel);
-				System.out.println("xvel="+b.getXV()+"\nyvel="+b.getYV()+"\nx="+b.getX());
-				break;
-			}
-		}
+		balls.add(new Ball(x, 0, xvel*(-1), yvel*(-1), 10));
 	}
 	
 	//TODO: send ball data over network
