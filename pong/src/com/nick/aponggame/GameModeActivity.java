@@ -57,8 +57,6 @@ public class GameModeActivity extends Activity
 
     // Name of the connected device
     private String mConnectedDeviceName = null;
-    // Array adapter for the conversation thread
-    private ArrayAdapter<String> mConversationArrayAdapter;
     // String buffer for outgoing messages
     private StringBuffer mOutStringBuffer;
     // Local Bluetooth adapter
@@ -221,7 +219,6 @@ public class GameModeActivity extends Activity
                 switch (msg.arg1) {
                 case Server.STATE_CONNECTED:
                     startGame();
-                    mConversationArrayAdapter.clear();
                     break;
                 case Server.STATE_CONNECTING:
                     break;
