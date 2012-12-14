@@ -275,7 +275,7 @@ public class GameModeActivity extends Activity
             // When the request to enable Bluetooth returns
             if (resultCode == Activity.RESULT_OK) {
                 // Bluetooth is now enabled, so set up a match
-                setupGame();
+                setup2pGame();
             } else {
                 // User did not enable Bluetooth or an error occured
                 Log.d(TAG, "BT not enabled");
