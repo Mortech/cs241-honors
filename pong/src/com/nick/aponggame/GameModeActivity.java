@@ -238,11 +238,18 @@ public class GameModeActivity extends Activity
 	                break;
 	            case MESSAGE_READ:
 	                String[] split=(new String((byte[]) msg.obj, 0, msg.arg1)).split(" ");	//split up string form of byte data
-	                int x=Integer.parseInt(split[0]);
-	                int xv=Integer.parseInt(split[1]);
-	                int yv=Integer.parseInt(split[2]);
+	                if(split.length==3)
+	                {
+	                	int x=Integer.parseInt(split[0]);
+	                	int xv=Integer.parseInt(split[1]);
+	                	int yv=Integer.parseInt(split[2]);
 	                
-	                view.returningBall(x, xv, yv);
+	                	view.returningBall(x, xv, yv);
+	                }
+	                else
+	                {
+	                	view.scoreSync(Integer.parseInt(split[0]));
+	                }
 	                break;
 	            case MESSAGE_DEVICE_NAME:
 	                // save the connected device's name

@@ -33,7 +33,7 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 			return list.size();
 		}
 	}
-	private SynchArray balls; //TODO: balls need to be protected somehow...
+	private SynchArray balls;
 	private Paddle paddle;
 	private boolean isPlayer1;
 	private volatile boolean running=true;
@@ -48,7 +48,7 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 		
 		owner=context;
 		balls=new SynchArray();
-		paddle=new Paddle(122, 680, 75, 10); //professional version needs a way to know height and width to set it at proper location, not a big deal
+		paddle=new Paddle(122, 680, 75, 10); 
 		holder=getHolder();
 		holder.addCallback(this);
 		scoreP1=0;
@@ -77,17 +77,31 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 		
 			//DEATH!
 			if(b.getY() > getHeight())
-			{//Collisions with the top/bot walls
+			{//Collisions with the bottom wall
+				String message;
+				
 				b.setX(getWidth()/2-b.getSize()/2); 
 				b.setY(getHeight()/5);
 				b.setXV(3);//TODO: make random angle and set velocity appropriately
 				b.setYV(3);
-				scoreP2++;	//TODO: sync score on both devices
+				if(isPlayer1)
+				{
+					scoreP2++;
+					message=scoreP2+" ";
+				}
+				else
+				{
+					scoreP1++;
+					message=scoreP1+" ";
+				}
+				
+				
+				server.write(message.getBytes());
 			}
 			else if(b.getY() < 0)
 			{
 				String message=b.getX()+" "+b.getXV()+" "+b.getYV()+" ";
-				// Get the message bytes and tell the BluetoothChatService to write
+				// Get the ball data bytes and tell the Server to write
 	            byte[] send = message.getBytes();
 	            
 	            server.write(send);
@@ -158,7 +172,7 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 	 * ball and paddle
 	 * 
 	 * @param - none
-	 * @return - none
+	 * @return - winner declared and activity ends
 	 */
 	public void run()
 	{
@@ -171,13 +185,13 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
  	 		draw(canvas, new Paint());
  	 		holder.unlockCanvasAndPost(canvas);
  	 	}	
-		//TODO: HANDLE WINNER HERE
+		//TODO: make a popup that says says you're the winner/loser
 		
-		//TODO: I think there should be a finish() call here? but I'm not sure
+		//TODO: I think there should be a owner.finish() call here? but I'm not sure
 		return;
 	}
 	
-	/* This function is called from the networking thread, when a ball is returning
+	/* This function is called from the Server handler, when a ball is returning
 	 * 
 	 * @param - x position, x velocity, y velocity
 	 * @return - none
@@ -185,6 +199,23 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 	public void returningBall(int x, int xvel, int yvel)
 	{
 		balls.add(new Ball(getWidth() - x, 0, xvel*(-1), yvel*(-1), 10));
+	}
+	
+	/* This function is called from the Server handler, when the score is changed
+	 * 
+	 * @param - score that was changed
+	 * @return -  
+	 */
+	public void scoreSync(int newScore)
+	{
+		if(isPlayer1)
+		{
+			scoreP1=newScore;
+		}
+		else
+		{
+			scoreP2=newScore;
+		}
 	}
 
 	
