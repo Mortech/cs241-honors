@@ -18,6 +18,7 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 	private int scoreP1;
 	private int scoreP2;
 	private int winningScore;
+	private boolean multiball;
 	public class SynchArray{
 		private ArrayList<Ball> list=new ArrayList<Ball>();
 		public synchronized void add(Ball b){
@@ -42,7 +43,7 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
     private Server server;
     private boolean isInitialDraw=true;
 
-	public StateHandler2P(Activity context, boolean play, Server serve)
+	public StateHandler2P(Activity context, boolean play, Server serve, boolean mult)
 	{
 		super(context);
 		
@@ -60,9 +61,9 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 		
 		if(isPlayer1)
    		{
-	   		balls.add(new Ball(155, 10, 3, 3, 10));//always starts on p1 screen [for now?]
+	   		balls.add(new Ball(155, 10, (int)(Math.random()*3)+3, (int)(Math.random()*3)+3, 10));//always starts on p1 screen [for now?]
    		}
-		
+		multiball=mult;
 	   	
 	   	return;
 	}
@@ -79,11 +80,16 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 			if(b.getY() > getHeight())
 			{//Collisions with the bottom wall
 				String message;
-				
-				b.setX(getWidth()/2-b.getSize()/2); 
-				b.setY(getHeight()/5);
-				b.setXV(3);//TODO: make random angle and set velocity appropriately
-				b.setYV(3);
+				if(balls.size()==1){ //TODO: need some sort of code to keep from constantly respawning redundantly
+					b.setX(getWidth()/2-b.getSize()/2); 
+					b.setY(getHeight()/5);
+					b.setXV((int)(Math.random()*3)+3);//TODO: make random angle and set velocity appropriately
+					b.setYV((int)(Math.random()*3)+3);
+				}
+				else{
+					balls.remove(b);
+					i--;
+				}
 				if(isPlayer1)
 				{
 					scoreP2++;
@@ -120,6 +126,7 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 			{//if within paddle's x positions, and was above paddle before move, and is now below paddle, collission with paddle
 			 //NOTE: this method is somewhat complicated to fix for the case that b.getYV()>paddle.getHeight()
 				b.reverseY();
+				if(multiball) balls.add(new Ball(b.getX(), paddle.getY()+paddle.getHeight()/2, (int)(Math.random()*3)+3, (-1)*((int)(Math.random()*3)+3), 10));
 			}
 		}
 		
@@ -177,7 +184,7 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 	 */
 	public void run()
 	{
-		while(scoreP1<winningScore && scoreP2<winningScore && running)
+		while(scoreP1<winningScore && scoreP2<winningScore && running) //TODO: print victor to screen when winningScore is reached?
 		{
 			Canvas canvas = holder.lockCanvas();
 			

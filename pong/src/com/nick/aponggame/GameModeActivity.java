@@ -193,14 +193,14 @@ public class GameModeActivity extends Activity
        
        if(mode.equals("2p0"))
        {
-    	   view=new StateHandler2P(this, true, btServer);
+    	   view=new StateHandler2P(this, true, btServer, true);
     	   
     	   ensureDiscoverable();
     	   //Wait for another device to connect!
        }
        else if(mode.equals("2p1"))
        {
-    	   view=new StateHandler2P(this, false, btServer);
+    	   view=new StateHandler2P(this, false, btServer, true);
     	   
     	   Intent serverIntent = new Intent(this, DeviceList.class);
     	   startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE);
