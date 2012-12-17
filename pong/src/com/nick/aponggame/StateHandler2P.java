@@ -108,16 +108,17 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 	            balls.remove(b);
 	            i--;
 			}
-			else if(b.getX()+b.getSize() > getWidth() || b.getX() < 0)
+			else if((b.getX()+b.getSize() > getWidth() && b.getXV()>0) || (b.getX() < 0 && b.getXV()<0))
 			{//Collisions with left/right walls
 				b.reverseX();  
 			}
 			else if(	b.getX() > paddle.getX() && 
 						b.getX() < paddle.getX()+paddle.getLength() &&
 				
-						b.getY()+b.getSize() >= paddle.getY()-(paddle.getHeight()/2) &&
-						b.getY()+b.getSize()-b.getYV() <= paddle.getY()-(paddle.getHeight()/2))	//the /2 is for safe measure 
-			{//if within paddle's x positions, and was above paddle before move, and is now below paddle, collission with paddle 
+						b.getY()+b.getSize() >= paddle.getY() &&
+						b.getY()+b.getSize()-b.getYV() <= paddle.getY() /*&& b.getYV()>0 is implied*/)
+			{//if within paddle's x positions, and was above paddle before move, and is now below paddle, collission with paddle
+			 //NOTE: this method is somewhat complicated to fix for the case that b.getYV()>paddle.getHeight()
 				b.reverseY();
 			}
 		}
@@ -198,7 +199,7 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 	 */
 	public void returningBall(int x, int xvel, int yvel)
 	{
-		balls.add(new Ball(getWidth() - x, 0, xvel*(-1), yvel*(-1), 10));
+		balls.add(new Ball(getWidth() - x, 1, xvel*(-1), yvel*(-1), 10));
 	}
 	
 	/* This function is called from the Server handler, when the score is changed
