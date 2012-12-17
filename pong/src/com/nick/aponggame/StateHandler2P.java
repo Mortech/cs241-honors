@@ -10,6 +10,7 @@ import android.graphics.Rect;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.widget.Toast;
 
 public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callback, 
 															Runnable

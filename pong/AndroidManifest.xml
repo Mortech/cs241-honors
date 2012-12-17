@@ -25,6 +25,8 @@
         </activity>
         <activity
             android:name=".GameModeActivity"
+            android:configChanges="orientation"
+            android:screenOrientation="landscape"
             android:label="@string/title_activity_game_mode" >
         </activity>
         <activity android:name=".DeviceList"
