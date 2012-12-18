@@ -3,14 +3,14 @@ package com.nick.aponggame;
 import java.util.ArrayList;
 
 import android.app.Activity;
-import android.bluetooth.BluetoothAdapter;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.widget.Toast;
 
 public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callback, 
 															Runnable
@@ -212,7 +212,7 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 	 */
 	public void run()
 	{
-		while(scoreP1<winningScore && scoreP2<winningScore && running) //TODO: print victor to screen when winningScore is reached?
+		while(scoreP1<winningScore && scoreP2<winningScore && running) 
 		{
 			Canvas canvas = holder.lockCanvas();
 			
@@ -220,11 +220,27 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 			update();
  	 		draw(canvas, new Paint());
  	 		holder.unlockCanvasAndPost(canvas);
- 	 	}	
+ 	 	}
+		
+		
 		//Make a popup that says says you're the winner/loser
-		//if((scoreP1>=winningScore && isPlayer1) || (scoreP2>=winningScore && !isPlayer1)) //you win
-		//else /*if(scoreP1>=winningScore || scoreP2>=winningScore) is implied*/ //you lose
-		//TODO: I think there should be a owner.finish() call here? but I'm not sure
+		AlertDialog.Builder builder = new AlertDialog.Builder(owner);
+		String message="Game Over! ";
+		if((scoreP1>=winningScore && isPlayer1) || (scoreP2>=winningScore && !isPlayer1)) //you win
+			message+="YOU WIN!!!";
+		else
+			message+="YOU LOSE!!!";
+        builder.setMessage(message)
+               .setPositiveButton("OK", new DialogInterface.OnClickListener() //TODO: If we have time, we can implement a play again feature
+               {
+                   public void onClick(DialogInterface dialog, int id)
+                   {
+                       //Is there anything we really need to do here?
+                   }
+               });
+        
+        builder.create().show();
+		owner.finish();
 		return;
 	}
 	
