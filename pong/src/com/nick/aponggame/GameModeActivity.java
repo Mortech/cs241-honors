@@ -243,8 +243,8 @@ public class GameModeActivity extends Activity
 	                	int x=Integer.parseInt(split[0]);
 	                	int xv=Integer.parseInt(split[1]);
 	                	int yv=Integer.parseInt(split[2]);
-	                
-	                	view.returningBall(x, xv, yv);
+	                	boolean last=Boolean.parseBoolean(split[3]);
+	                	view.returningBall(x, xv, yv, last);
 	                }
 	                else
 	                {

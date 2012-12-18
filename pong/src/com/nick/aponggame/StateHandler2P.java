@@ -43,6 +43,7 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 	private Activity owner;
     private Server server;
     private boolean isInitialDraw=true;
+    private volatile boolean lastBall;
 
 	public StateHandler2P(Activity context, boolean play, Server serve, boolean mult)
 	{
@@ -59,6 +60,7 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 		gameThread=new Thread(this);
 		server=serve;
 		isPlayer1=play;//determined by network coding
+		lastBall=play;
 		
 		if(isPlayer1)
    		{
@@ -81,7 +83,7 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 			if(b.getY() > getHeight())
 			{//Collisions with the bottom wall
 				String message;
-				if(balls.size()==1){ //TODO: need some sort of code to keep from constantly respawning redundantly
+				if(balls.size()==1 && lastBall){ //TODO: need some sort of code to keep from constantly respawning redundantly (tack onto score data?)
 					b.setX(getWidth()/2-b.getSize()/2); 
 					b.setY(getHeight()/5);
 					b.setXV((int)(Math.random()*3)+3);//TODO: make random angle and set velocity appropriately
@@ -107,10 +109,10 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 			}
 			else if(b.getY() < 0)
 			{
-				String message=b.getX()+" "+b.getXV()+" "+b.getYV()+" ";
+				String message=b.getX()+" "+b.getXV()+" "+b.getYV()+" "+(balls.size()==1)+" ";
 				// Get the ball data bytes and tell the Server to write
 	            byte[] send = message.getBytes();
-	            
+	            lastBall=false;
 	            server.write(send);
 	            balls.remove(b);
 	            i--;
@@ -119,7 +121,7 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 			{//Collisions with left/right walls
 				b.reverseX();  
 			}
-			else if(	b.getX() > paddle.getX() && 
+			else if(	b.getX() > paddle.getX() &&
 						b.getX() < paddle.getX()+paddle.getLength() &&
 				
 						b.getY()+b.getSize() >= paddle.getY() &&
@@ -194,8 +196,9 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
  	 		draw(canvas, new Paint());
  	 		holder.unlockCanvasAndPost(canvas);
  	 	}	
-		//TODO: make a popup that says says you're the winner/loser
-		
+		//Make a popup that says says you're the winner/loser
+		if((scoreP1>=winningScore && isPlayer1) || (scoreP2>=winningScore && !isPlayer1)) Toast.makeText(owner, "You win!~", Toast.LENGTH_LONG).show();
+		else if(scoreP1>=winningScore || scoreP2>=winningScore) Toast.makeText(owner, "You lost. ):", Toast.LENGTH_LONG).show();
 		//TODO: I think there should be a owner.finish() call here? but I'm not sure
 		return;
 	}
@@ -205,9 +208,10 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 	 * @param - x position, x velocity, y velocity
 	 * @return - none
 	 */
-	public void returningBall(int x, int xvel, int yvel)
+	public void returningBall(int x, int xvel, int yvel, boolean last)
 	{
 		balls.add(new Ball(getWidth() - x, 1, xvel*(-1), yvel*(-1), 10));
+		lastBall=last;
 	}
 	
 	/* This function is called from the Server handler, when the score is changed
