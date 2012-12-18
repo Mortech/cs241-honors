@@ -238,12 +238,13 @@ public class GameModeActivity extends Activity
 	                break;
 	            case MESSAGE_READ:
 	                String[] split=(new String((byte[]) msg.obj, 0, msg.arg1)).split(" ");	//split up string form of byte data
-	                if(split.length==3)
+	                if(split.length==4)
 	                {
 	                	int x=Integer.parseInt(split[0]);
 	                	int xv=Integer.parseInt(split[1]);
 	                	int yv=Integer.parseInt(split[2]);
-	                	boolean last=Boolean.parseBoolean(split[3]);
+	                	int last=Integer.parseInt(split[3]);
+	                	System.out.println("last="+last);
 	                	view.returningBall(x, xv, yv, last);
 	                }
 	                else
@@ -272,7 +273,6 @@ public class GameModeActivity extends Activity
 	   	setContentView(view);
 	   	return;
     }
-
     
     private void ensureDiscoverable()
     {

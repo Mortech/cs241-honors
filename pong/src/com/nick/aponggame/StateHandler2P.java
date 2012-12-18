@@ -83,8 +83,8 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 			if(b.getY() > getHeight())
 			{//Collisions with the bottom wall
 				String message;
-				if(balls.size()==1 && lastBall){ //TODO: need some sort of code to keep from constantly respawning redundantly (tack onto score data?)
-					b.setX(getWidth()/2-b.getSize()/2); 
+				if(balls.size()==1 && lastBall){ //TODO: Send not alive if last ball left and they are still alive!
+					b.setX(getWidth()/2-b.getSize()/2);
 					b.setY(getHeight()/5);
 					b.setXV((int)(Math.random()*3)+3);//TODO: make random angle and set velocity appropriately
 					b.setYV((int)(Math.random()*3)+3);
@@ -109,7 +109,9 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 			}
 			else if(b.getY() < 0)
 			{
-				String message=b.getX()+" "+b.getXV()+" "+b.getYV()+" "+(balls.size()==1)+" ";
+				int last=0;
+				if(balls.size()==1) last++;
+				String message=b.getX()+" "+b.getXV()+" "+b.getYV()+" "+last+" ";
 				// Get the ball data bytes and tell the Server to write
 	            byte[] send = message.getBytes();
 	            lastBall=false;
@@ -197,8 +199,8 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
  	 		holder.unlockCanvasAndPost(canvas);
  	 	}	
 		//Make a popup that says says you're the winner/loser
-		if((scoreP1>=winningScore && isPlayer1) || (scoreP2>=winningScore && !isPlayer1)) Toast.makeText(owner, "You win!~", Toast.LENGTH_LONG).show();
-		else if(scoreP1>=winningScore || scoreP2>=winningScore) Toast.makeText(owner, "You lost. ):", Toast.LENGTH_LONG).show();
+		//if((scoreP1>=winningScore && isPlayer1) || (scoreP2>=winningScore && !isPlayer1)) //you win
+		//else if(scoreP1>=winningScore || scoreP2>=winningScore) //you lose
 		//TODO: I think there should be a owner.finish() call here? but I'm not sure
 		return;
 	}
@@ -208,10 +210,10 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 	 * @param - x position, x velocity, y velocity
 	 * @return - none
 	 */
-	public void returningBall(int x, int xvel, int yvel, boolean last)
+	public void returningBall(int x, int xvel, int yvel, int last)
 	{
 		balls.add(new Ball(getWidth() - x, 1, xvel*(-1), yvel*(-1), 10));
-		lastBall=last;
+		lastBall=(last!=0);
 	}
 	
 	/* This function is called from the Server handler, when the score is changed
