@@ -43,7 +43,7 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 	private Activity owner;
     private Server server;
     private boolean isInitialDraw=true;
-    private volatile boolean lastBall;
+    private volatile int totalBalls;
 
 	public StateHandler2P(Activity context, boolean play, Server serve, boolean mult)
 	{
@@ -60,19 +60,21 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 		gameThread=new Thread(this);
 		server=serve;
 		isPlayer1=play;//determined by network coding
-		lastBall=play;
 		
+		
+		totalBalls=1;
 		if(isPlayer1)
    		{
 	   		balls.add(new Ball(155, 10, (int)(Math.random()*3)+3, (int)(Math.random()*3)+3, 10));//always starts on p1 screen [for now?]
    		}
 		multiball=mult;
+		
 	   	
 	   	return;
 	}
 	
 	//used by run
-	public void update()// later change to return int reflecting who scored, if anyone
+	public void update()//later change to return int reflecting who scored, if anyone
 	{
 		for(int i=0; i<balls.size(); i++)
 		{
@@ -83,16 +85,19 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 			if(b.getY() > getHeight())
 			{//Collisions with the bottom wall
 				String message;
-				if(balls.size()==1 && lastBall){ //TODO: Send not alive if last ball left and they are still alive!
+				if(totalBalls==1){ //I have no idea what this means: "Send not alive if last ball left and they are still alive!"
 					b.setX(getWidth()/2-b.getSize()/2);
 					b.setY(getHeight()/5);
-					b.setXV((int)(Math.random()*3)+3);//TODO: make random angle and set velocity appropriately
+					b.setXV((int)(Math.random()*3)+3);//make random velocity
 					b.setYV((int)(Math.random()*3)+3);
 				}
-				else{
+				else
+				{
 					balls.remove(b);
+					totalBalls--;
 					i--;
 				}
+				
 				if(isPlayer1)
 				{
 					scoreP2++;
@@ -103,18 +108,18 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 					scoreP1++;
 					message=scoreP1+" ";
 				}
+				message+=totalBalls+" ";
 				
 				
 				server.write(message.getBytes());
 			}
 			else if(b.getY() < 0)
-			{
-				int last=0;
-				if(balls.size()==1) last++;
-				String message=b.getX()+" "+b.getXV()+" "+b.getYV()+" "+last+" ";
+			{//send ball to opponent
+				String message=b.getX()+" "+b.getXV()+" "+b.getYV()+" ";
 				// Get the ball data bytes and tell the Server to write
 	            byte[] send = message.getBytes();
-	            lastBall=false;
+	            
+	            
 	            server.write(send);
 	            balls.remove(b);
 	            i--;
@@ -131,7 +136,8 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 			{//if within paddle's x positions, and was above paddle before move, and is now below paddle, collission with paddle
 			 //NOTE: this method is somewhat complicated to fix for the case that b.getYV()>paddle.getHeight()
 				b.reverseY();
-				if(multiball) balls.add(new Ball(b.getX(), paddle.getY()+paddle.getHeight()/2, (int)(Math.random()*3)+3, (-1)*((int)(Math.random()*3)+3), 10));
+				if(multiball) 
+					balls.add(new Ball(b.getX(), paddle.getY()+paddle.getHeight()-1, (int)(Math.random()*3)+3, (-1)*((int)(Math.random()*3)+3), 10));
 			}
 		}
 		
@@ -200,7 +206,7 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
  	 	}	
 		//Make a popup that says says you're the winner/loser
 		//if((scoreP1>=winningScore && isPlayer1) || (scoreP2>=winningScore && !isPlayer1)) //you win
-		//else if(scoreP1>=winningScore || scoreP2>=winningScore) //you lose
+		//else /*if(scoreP1>=winningScore || scoreP2>=winningScore) is implied*/ //you lose
 		//TODO: I think there should be a owner.finish() call here? but I'm not sure
 		return;
 	}
@@ -210,10 +216,9 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 	 * @param - x position, x velocity, y velocity
 	 * @return - none
 	 */
-	public void returningBall(int x, int xvel, int yvel, int last)
+	public void returningBall(int x, int xvel, int yvel)
 	{
 		balls.add(new Ball(getWidth() - x, 1, xvel*(-1), yvel*(-1), 10));
-		lastBall=(last!=0);
 	}
 	
 	/* This function is called from the Server handler, when the score is changed
@@ -221,7 +226,7 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 	 * @param - score that was changed
 	 * @return -  
 	 */
-	public void scoreSync(int newScore)
+	public void scoreSync(int newScore, int numBalls)
 	{
 		if(isPlayer1)
 		{
@@ -231,6 +236,8 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 		{
 			scoreP2=newScore;
 		}
+		
+		totalBalls=numBalls;
 	}
 
 	
