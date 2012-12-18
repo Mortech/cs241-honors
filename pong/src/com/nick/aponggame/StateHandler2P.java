@@ -136,8 +136,25 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 			{//if within paddle's x positions, and was above paddle before move, and is now below paddle, collission with paddle
 			 //NOTE: this method is somewhat complicated to fix for the case that b.getYV()>paddle.getHeight()
 				b.reverseY();
-				if(multiball) 
+				if(multiball)
+				{
+					String message;
 					balls.add(new Ball(b.getX(), paddle.getY()+paddle.getHeight()-1, (int)(Math.random()*3)+3, (-1)*((int)(Math.random()*3)+3), 10));
+					totalBalls++;
+					
+					if(isPlayer1)
+					{
+						message=scoreP2+" ";
+					}
+					else
+					{
+						message=scoreP1+" ";
+					}
+					message+=totalBalls+" ";
+					
+					
+					server.write(message.getBytes());
+				}
 			}
 		}
 		
