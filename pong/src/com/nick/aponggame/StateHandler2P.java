@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.view.MotionEvent;
@@ -184,6 +185,22 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 		//Clear the screen and set color
 		canvas.drawRGB(20, 20, 20);
 		paint.setARGB(200, 0, 200, 0);
+		
+		//Draw score
+		paint.setColor(Color.YELLOW);
+		paint.setTextSize(20);
+		int you, them;
+		if(isPlayer1){
+			you=scoreP1;
+			them=scoreP2;
+		} else{
+			you=scoreP2;
+			them=scoreP1;
+		}
+		canvas.drawText("You="+you, 10, 25, paint);
+		canvas.drawText("Them="+them, getWidth()-100, 25, paint);
+		
+		paint.setColor(Color.WHITE);
 	
 		//draw the ball
 		for(int i=0; i<balls.size(); i++)
@@ -222,7 +239,7 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
  	 		holder.unlockCanvasAndPost(canvas);
  	 	}
 		
-		
+		/*
 		//Make a popup that says says you're the winner/loser
 		AlertDialog.Builder builder = new AlertDialog.Builder(owner);
 		String message="Game Over! ";
@@ -241,6 +258,14 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
         
         builder.create().show();
 		owner.finish();
+		*/
+		Paint paint=new Paint();
+		paint.setColor(Color.RED);
+		paint.setTextSize(50);
+		Canvas canvas=holder.lockCanvas();
+		if((scoreP1>=winningScore && isPlayer1) || (scoreP2>=winningScore && !isPlayer1)) canvas.drawText("YOU WIN!", getWidth()/2-120, getHeight()/2, paint);
+		else if(scoreP1>=winningScore || scoreP2>=winningScore) canvas.drawText("You lost. ):", getWidth()/2-120, getHeight()/2, paint);
+		holder.unlockCanvasAndPost(canvas);
 		return;
 	}
 	
@@ -249,7 +274,7 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 	 * @param - x position, x velocity, y velocity
 	 * @return - none
 	 */
-	public void returningBall(int x, int xvel, int yvel)
+	public void returningBall(int x, int xvel, int yvel) //TODO: balls can appear offscreen if playing with a phone that has a larger screen size
 	{
 		balls.add(new Ball(getWidth() - x, 1, xvel*(-1), yvel*(-1), 10));
 	}
