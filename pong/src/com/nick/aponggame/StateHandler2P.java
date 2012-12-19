@@ -36,6 +36,18 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 			return list.size();
 		}
 	}
+	public class Synchint{
+		private int total=0;
+		public synchronized void add(){
+			total++;
+		}
+		public synchronized void sub(){
+			total--;
+		}
+		public synchronized int get(){
+			return total;
+		}
+	}
 	private SynchArray balls;
 	private Paddle paddle;
 	private boolean isPlayer1;
@@ -44,7 +56,7 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 	private Activity owner;
     private Server server;
     private boolean isInitialDraw=true;
-    private volatile int totalBalls;
+    private Synchint totalBalls;
 
 	public StateHandler2P(Activity context, boolean play, Server serve, boolean mult)
 	{
@@ -62,8 +74,8 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 		server=serve;
 		isPlayer1=play;//determined by network coding
 		
-		
-		totalBalls=1;
+		totalBalls=new Synchint();
+		totalBalls.add();
 		if(isPlayer1)
    		{
 	   		balls.add(new Ball(155, 10, (int)(Math.random()*3)+3, (int)(Math.random()*3)+3, 10));//always starts on p1 screen [for now?]
@@ -77,6 +89,10 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 	//used by run
 	public void update()//later change to return int reflecting who scored, if anyone
 	{
+		if(isPlayer1 && totalBalls.get()==0){
+			balls.add(new Ball(getWidth()/2 - 5, getHeight()/5, (int)(Math.random()*3)+3, (int)(Math.random()*3)+3, 10));
+			totalBalls.add();
+		}
 		for(int i=0; i<balls.size(); i++)
 		{
 			Ball b=balls.get(i);
@@ -86,7 +102,7 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 			if(b.getY() > getHeight())
 			{//Collisions with the bottom wall
 				String message;
-				if(totalBalls==1){ //I have no idea what this means: "Send not alive if last ball left and they are still alive!"
+				if(totalBalls.get()==1 && isPlayer1){
 					b.setX(getWidth()/2-b.getSize()/2);
 					b.setY(getHeight()/5);
 					b.setXV((int)(Math.random()*3)+3);//make random velocity
@@ -95,7 +111,7 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 				else
 				{
 					balls.remove(b);
-					totalBalls--;
+					if (isPlayer1) totalBalls.sub();
 					i--;
 				}
 				
@@ -109,7 +125,7 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 					scoreP1++;
 					message=scoreP1+" ";
 				}
-				message+=totalBalls+" ";
+				message+=(-1)+" ";
 				
 				
 				server.write(message.getBytes());
@@ -141,7 +157,7 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 				{
 					String message;
 					balls.add(new Ball(b.getX(), paddle.getY()+paddle.getHeight()-1, (int)(Math.random()*3)+3, (-1)*((int)(Math.random()*3)+3), 10));
-					totalBalls++;
+					if(isPlayer1) totalBalls.add();
 					
 					if(isPlayer1)
 					{
@@ -151,7 +167,7 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 					{
 						message=scoreP1+" ";
 					}
-					message+=totalBalls+" ";
+					message+=1+" ";
 					
 					
 					server.write(message.getBytes());
@@ -233,39 +249,36 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 		{
 			Canvas canvas = holder.lockCanvas();
 			
-			
 			update();
  	 		draw(canvas, new Paint());
  	 		holder.unlockCanvasAndPost(canvas);
  	 	}
-		
-		/*
-		//Make a popup that says says you're the winner/loser
-		AlertDialog.Builder builder = new AlertDialog.Builder(owner);
-		String message="Game Over! ";
-		if((scoreP1>=winningScore && isPlayer1) || (scoreP2>=winningScore && !isPlayer1)) //you win
-			message+="YOU WIN!!!";
-		else
-			message+="YOU LOSE!!!";
-        builder.setMessage(message)
-               .setPositiveButton("OK", new DialogInterface.OnClickListener() //TODO: If we have time, we can implement a play again feature
-               {
-                   public void onClick(DialogInterface dialog, int id)
-                   {
-                       //Is there anything we really need to do here?
-                   }
-               });
-        
-        builder.create().show();
-		owner.finish();
-		*/
 		Paint paint=new Paint();
 		paint.setColor(Color.RED);
 		paint.setTextSize(50);
 		Canvas canvas=holder.lockCanvas();
+		draw(canvas, new Paint());
 		if((scoreP1>=winningScore && isPlayer1) || (scoreP2>=winningScore && !isPlayer1)) canvas.drawText("YOU WIN!", getWidth()/2-120, getHeight()/2, paint);
 		else if(scoreP1>=winningScore || scoreP2>=winningScore) canvas.drawText("You lost. ):", getWidth()/2-120, getHeight()/2, paint);
 		holder.unlockCanvasAndPost(canvas);
+		String message;
+		try{
+			Thread.sleep(500);
+		} catch(Exception e){
+			
+		}
+		if(isPlayer1)
+		{
+			message=scoreP2+" ";
+		}
+		else
+		{
+			message=scoreP1+" ";
+		}
+		message+=0+" ";
+		
+		
+		server.write(message.getBytes());
 		return;
 	}
 	
@@ -290,14 +303,15 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 	{
 		if(isPlayer1)
 		{
-			scoreP1=newScore;
+			if(scoreP1<winningScore) scoreP1=newScore;
 		}
 		else
 		{
-			scoreP2=newScore;
+			if(scoreP2<winningScore) scoreP2=newScore;
 		}
 		
-		totalBalls=numBalls;
+		if(isPlayer1 && numBalls<0) totalBalls.sub();
+		else if(isPlayer1 && numBalls>0) totalBalls.add();
 	}
 
 	
