@@ -116,7 +116,7 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 			}
 			else if(b.getY() < 0)
 			{//send ball to opponent
-				String message=b.getX()+" "+b.getXV()+" "+b.getYV()+" ";
+				String message=b.getX()+" "+b.getXV()+" "+b.getYV()+" "+getWidth()+" ";
 				// Get the ball data bytes and tell the Server to write
 	            byte[] send = message.getBytes();
 	            
@@ -274,9 +274,11 @@ public class StateHandler2P extends SurfaceView implements 	SurfaceHolder.Callba
 	 * @param - x position, x velocity, y velocity
 	 * @return - none
 	 */
-	public void returningBall(int x, int xvel, int yvel) //TODO: balls can appear offscreen if playing with a phone that has a larger screen size
+	public void returningBall(int x, int xvel, int yvel, int width)
 	{
-		balls.add(new Ball(getWidth() - x, 1, xvel*(-1), yvel*(-1), 10));
+		double adjusted=((double)(width-x))/((double)width);
+		adjusted=(int)(adjusted*getWidth());
+		balls.add(new Ball((int)adjusted, 1, xvel*(-1), yvel*(-1), 10));
 	}
 	
 	/* This function is called from the Server handler, when the score is changed
